@@ -1,0 +1,40 @@
+import { describe, expect, it } from 'vitest';
+import {
+  ROUTE_ACTIVE_OPACITY,
+  ROUTE_ACTIVE_WIDTH,
+  ROUTE_BASE_OPACITY,
+  ROUTE_BASE_WIDTH,
+  ROUTE_CONNECTED_OPACITY,
+  ROUTE_CONNECTED_WIDTH,
+  ROUTE_DIMMED_OPACITY,
+  routeLineOpacity,
+  routeLineWidth
+} from './routeStyles';
+
+describe('route line styles', () => {
+  it('uses a subtle base style for unfocused routes', () => {
+    expect(routeLineOpacity({})).toBe(ROUTE_BASE_OPACITY);
+    expect(routeLineWidth({})).toBe(ROUTE_BASE_WIDTH);
+  });
+
+  it('lifts hovered and selected routes without exceeding packet priority', () => {
+    expect(routeLineOpacity({ hovered: true })).toBe(ROUTE_ACTIVE_OPACITY);
+    expect(routeLineWidth({ hovered: true })).toBe(ROUTE_ACTIVE_WIDTH);
+    expect(routeLineOpacity({ selected: true })).toBe(ROUTE_ACTIVE_OPACITY);
+    expect(routeLineWidth({ selected: true })).toBe(ROUTE_ACTIVE_WIDTH);
+  });
+
+  it('dims unrelated routes only when they are not focused', () => {
+    expect(routeLineOpacity({ dimmed: true })).toBe(ROUTE_DIMMED_OPACITY);
+    expect(routeLineWidth({ dimmed: true })).toBe(ROUTE_BASE_WIDTH);
+    expect(routeLineOpacity({ selected: true, dimmed: true })).toBe(ROUTE_ACTIVE_OPACITY);
+    expect(routeLineWidth({ hovered: true, dimmed: true })).toBe(ROUTE_ACTIVE_WIDTH);
+  });
+
+  it('lifts connected neighbour routes below hovered and selected routes', () => {
+    expect(routeLineOpacity({ connected: true })).toBe(ROUTE_CONNECTED_OPACITY);
+    expect(routeLineWidth({ connected: true })).toBe(ROUTE_CONNECTED_WIDTH);
+    expect(routeLineOpacity({ connected: true, selected: true })).toBe(ROUTE_ACTIVE_OPACITY);
+    expect(routeLineWidth({ connected: true, hovered: true })).toBe(ROUTE_ACTIVE_WIDTH);
+  });
+});

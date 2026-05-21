@@ -1,0 +1,26 @@
+services:
+  meshcore-live-map:
+    build: .
+    container_name: meshcore-canada-live-map
+    ports:
+      - "39476:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./examples:/app/examples:ro
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: unless-stopped

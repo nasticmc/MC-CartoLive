@@ -1,0 +1,371 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LocateFixed, Pause, Play, RotateCcw, Search, Share2, X } from 'lucide-react';
+import { fetchPublicState } from './api';
+import { connectPublicSocket } from './ws';
+import {
+  applyPublicEnvelope,
+  emptyState,
+  filterNodes,
+  filterRoutes,
+  initialAppState,
+  liveCoverageStats,
+  summarizeRouteActivity,
+  type AppState
+} from './state';
+import CanadaMap, { type MapAction } from './map/CanadaMap';
+import HotRoutes from './components/HotRoutes';
+import Legend from './components/Legend';
+import SelectionDrawer from './components/SelectionDrawer';
+import StatusBar from './components/StatusBar';
+import { buildSharedViewURL, parseSharedView, type MapViewState } from './shareView';
+import type { PublicActivity, PublicLiveEnvelope } from './types';
+
+export default function App() {
+  const sharedViewRef = useRef(parseSharedView(window.location.search));
+  const [state, setState] = useState<AppState>(emptyState);
+  const [socketStatus, setSocketStatus] = useState('starting');
+  const [paused, setPaused] = useState(false);
+  const [query, setQuery] = useState(() => sharedViewRef.current?.q ?? '');
+  const [clearToken, setClearToken] = useState(0);
+  const [actionToken, setActionToken] = useState(0);
+  const [mapAction, setMapAction] = useState<MapAction>(null);
+  const [selectedNodeID, setSelectedNodeID] = useState<string | null>(() => sharedViewRef.current?.node ?? null);
+  const [selectedRouteID, setSelectedRouteID] = useState<string | null>(() => sharedViewRef.current?.route ?? null);
+  const [mapView, setMapView] = useState<MapViewState | null>(() => {
+    const shared = sharedViewRef.current;
+    return shared ? { lat: shared.lat, lng: shared.lng, z: shared.z } : null;
+  });
+  const [initialLoadGateOpen, setInitialLoadGateOpen] = useState(true);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+  const [liveClock, setLiveClock] = useState(() => Date.now());
+  const [initialNodesReceived, setInitialNodesReceived] = useState(false);
+  const [positionedNodesRendered, setPositionedNodesRendered] = useState(false);
+  const [nodeLoadFailed, setNodeLoadFailed] = useState(false);
+  const pendingMessagesRef = useRef<PublicLiveEnvelope[]>([]);
+  const flushMessagesRafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (initialNodesReceived) return;
+    let cancelled = false;
+    let retryTimer: number | undefined;
+    const loadState = () => {
+      fetchPublicState()
+        .then((liveState) => {
+          if (cancelled) return;
+          setState(initialAppState(liveState));
+          if ((liveState.nodes?.length ?? 0) > 0) {
+            setInitialNodesReceived(true);
+          } else {
+            retryTimer = window.setTimeout(loadState, 1500);
+          }
+          setNodeLoadFailed(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setSocketStatus('state-error');
+          setNodeLoadFailed(true);
+          retryTimer = window.setTimeout(loadState, 2000);
+        });
+    };
+    loadState();
+    return () => {
+      cancelled = true;
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
+  }, [initialNodesReceived]);
+
+  useEffect(() => {
+    let openedOnce = false;
+    let active = true;
+    const flushMessages = () => {
+      flushMessagesRafRef.current = null;
+      if (!active || pendingMessagesRef.current.length === 0) return;
+      const messages = pendingMessagesRef.current
+        .slice()
+        .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0) || (a.displayAt ?? 0) - (b.displayAt ?? 0));
+      pendingMessagesRef.current = [];
+      setState((current) => messages.reduce((next, message) => applyPublicEnvelope(next, message), current));
+    };
+    const enqueueMessage = (message: PublicLiveEnvelope) => {
+      pendingMessagesRef.current.push(message);
+      if (flushMessagesRafRef.current !== null) return;
+      flushMessagesRafRef.current = window.requestAnimationFrame(flushMessages);
+    };
+    const refreshState = () => {
+      fetchPublicState().then((liveState) => {
+        if (!active) return;
+        setState(initialAppState(liveState));
+        if ((liveState.nodes?.length ?? 0) > 0) {
+          setInitialNodesReceived(true);
+          setNodeLoadFailed(false);
+        }
+      }).catch(() => {
+        if (!active) return;
+        setSocketStatus('state-error');
+        if (!initialNodesReceived) setNodeLoadFailed(true);
+      });
+    };
+    const socket = connectPublicSocket((message) => {
+      if (message.type === 'lagged') {
+        pendingMessagesRef.current = [];
+        if (flushMessagesRafRef.current !== null) {
+          window.cancelAnimationFrame(flushMessagesRafRef.current);
+          flushMessagesRafRef.current = null;
+        }
+        refreshState();
+        return;
+      }
+      enqueueMessage(message);
+    }, setSocketStatus, () => {
+      if (openedOnce) refreshState();
+      openedOnce = true;
+    });
+    return () => {
+      active = false;
+      if (flushMessagesRafRef.current !== null) window.cancelAnimationFrame(flushMessagesRafRef.current);
+      flushMessagesRafRef.current = null;
+      pendingMessagesRef.current = [];
+      socket.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    let inFlight = false;
+    const refresh = () => {
+      if (inFlight) return;
+      inFlight = true;
+      fetchPublicState()
+        .then((liveState) => {
+          if (!active) return;
+          setState(initialAppState(liveState));
+          if ((liveState.nodes?.length ?? 0) > 0) {
+            setInitialNodesReceived(true);
+            setNodeLoadFailed(false);
+          }
+          setSocketStatus((current) => (current === 'live' ? current : 'polling'));
+        })
+        .catch(() => {
+          if (!active) return;
+          if (!initialNodesReceived) setNodeLoadFailed(true);
+        })
+        .finally(() => {
+          inFlight = false;
+        });
+    };
+    const interval = window.setInterval(refresh, socketStatus === 'live' ? 15_000 : 3_500);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [initialNodesReceived, socketStatus]);
+
+  useEffect(() => {
+    if (!initialNodesReceived || positionedNodesRendered) return;
+    const fallback = window.setTimeout(() => setPositionedNodesRendered(true), 1800);
+    return () => window.clearTimeout(fallback);
+  }, [initialNodesReceived, positionedNodesRendered]);
+
+  useEffect(() => {
+    const fallback = window.setTimeout(() => setInitialLoadGateOpen(false), 4500);
+    return () => window.clearTimeout(fallback);
+  }, []);
+
+  useEffect(() => {
+    if (positionedNodesRendered) setInitialLoadGateOpen(false);
+  }, [positionedNodesRendered]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setLiveClock(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const visibleNodes = useMemo(() => filterNodes(state.nodes, query), [state.nodes, query]);
+  const visibleNodeIDs = useMemo(() => new Set(visibleNodes.map((node) => node.id)), [visibleNodes]);
+  const visibleRoutes = useMemo(() => filterRoutes(state.routes, visibleNodeIDs, query), [state.routes, visibleNodeIDs, query]);
+  const selectedNode = useMemo(() => state.nodes.find((node) => node.id === selectedNodeID) ?? null, [state.nodes, selectedNodeID]);
+  const selectedRoute = useMemo(() => state.routes.find((route) => route.id === selectedRouteID) ?? null, [state.routes, selectedRouteID]);
+  const connectedRoutes = useMemo(() => {
+    if (!selectedNodeID) return [];
+    return state.routes.filter((route) => route.from.nodeId === selectedNodeID || route.to.nodeId === selectedNodeID).slice(0, 10);
+  }, [state.routes, selectedNodeID]);
+
+  const activityClock = Math.max(liveClock, state.serverTime, state.activity[0]?.heardAt ?? 0, state.routeTraces.at(-1)?.heardAt ?? 0);
+  const routeActivityByID = useMemo(() => summarizeRouteActivity(state.routeTraces, activityClock), [state.routeTraces, activityClock]);
+  const coverage = useMemo(() => liveCoverageStats(state.activity, activityClock), [state.activity, activityClock]);
+  const latestPacketActivity = useMemo(() => state.activity.find(isPacketActivity) ?? null, [state.activity]);
+  const loadingPositionedNodes = initialLoadGateOpen && (!initialNodesReceived || !positionedNodesRendered);
+  const handlePositionedNodesRendered = useCallback(() => setPositionedNodesRendered(true), []);
+  const handleViewChange = useCallback((view: MapViewState) => setMapView(view), []);
+  const hotRoutes = useMemo(
+    () =>
+      [...visibleRoutes].sort((a, b) => {
+        const recentDelta = (routeActivityByID.get(b.id)?.total ?? 0) - (routeActivityByID.get(a.id)?.total ?? 0);
+        if (recentDelta !== 0) return recentDelta;
+        return b.packetCount - a.packetCount || b.lastHeard - a.lastHeard;
+      }),
+    [visibleRoutes, routeActivityByID]
+  );
+
+  const dispatchMapAction = (next: Exclude<MapAction, null>['type'], value?: string) => {
+    const token = actionToken + 1;
+    setActionToken(token);
+    if (next === 'route' && value) setMapAction({ type: 'route', routeID: value, token });
+    else if (next === 'node' && value) setMapAction({ type: 'node', nodeID: value, token });
+    else if (next === 'latest-route') setMapAction({ type: 'latest-route', token });
+    else setMapAction({ type: 'reset', token });
+  };
+
+  const selectNode = (nodeID: string) => {
+    setSelectedNodeID(nodeID);
+    setSelectedRouteID(null);
+  };
+
+  const selectRoute = (routeID: string) => {
+    setSelectedRouteID(routeID);
+    setSelectedNodeID(null);
+    dispatchMapAction('route', routeID);
+  };
+
+  const shareView = useCallback(async () => {
+    const view = mapView ?? (sharedViewRef.current ? { lat: sharedViewRef.current.lat, lng: sharedViewRef.current.lng, z: sharedViewRef.current.z } : null);
+    if (!view) {
+      setShareToast('Map view not ready');
+      window.setTimeout(() => setShareToast(null), 2200);
+      return;
+    }
+    const url = buildSharedViewURL(window.location.href, view, {
+      route: selectedRouteID,
+      node: selectedNodeID,
+      q: query
+    });
+    try {
+      await copyTextToClipboard(url);
+      setShareToast('View link copied');
+    } catch {
+      setShareToast('Copy failed');
+    }
+    window.setTimeout(() => setShareToast(null), 2200);
+  }, [mapView, query, selectedNodeID, selectedRouteID]);
+
+  return (
+    <div className="app-shell public-dashboard">
+      <CanadaMap
+        nodes={visibleNodes}
+        routes={visibleRoutes}
+        pulses={state.pulses}
+        observerBursts={state.observerBursts}
+        paused={paused}
+        clearToken={clearToken}
+        selectedNodeID={selectedNodeID}
+        selectedRouteID={selectedRouteID}
+        mapAction={mapAction}
+        initialView={sharedViewRef.current}
+        loading={loadingPositionedNodes}
+        onPositionedNodesRendered={handlePositionedNodesRendered}
+        onViewChange={handleViewChange}
+        onSelectNode={selectNode}
+        onSelectRoute={selectRoute}
+      />
+      {loadingPositionedNodes && <NodeLoadingToast failed={nodeLoadFailed} drawing={initialNodesReceived} />}
+      <StatusBar
+        stats={state.stats}
+        socketStatus={socketStatus}
+        nodeCount={visibleNodes.length}
+        routeCount={visibleRoutes.length}
+        coverage={coverage}
+        latestPayloadTypeName={latestPacketActivity?.payloadTypeName ?? null}
+        latestPacketID={latestPacketActivity?.id ?? null}
+      />
+
+      <div className="top-actions">
+        <button className="icon-button" type="button" title={paused ? 'Resume packet flow' : 'Pause packet flow'} onClick={() => setPaused((value) => !value)}>
+          {paused ? <Play size={18} /> : <Pause size={18} />}
+        </button>
+        <button className="icon-button" type="button" title="Clear active pulses" onClick={() => setClearToken((value) => value + 1)}>
+          <RotateCcw size={18} />
+        </button>
+        <button className="icon-button route-focus" type="button" title="Focus latest route" onClick={() => dispatchMapAction('latest-route')}>
+          <LocateFixed size={18} />
+        </button>
+        <button className="icon-button" type="button" title="Share this view" onClick={shareView}>
+          <Share2 size={18} />
+        </button>
+        <button className="icon-button" type="button" title="Reset map" onClick={() => dispatchMapAction('reset')}>
+          <X size={18} />
+        </button>
+      </div>
+      {shareToast && <div className="share-toast" role="status">{shareToast}</div>}
+
+      <section className="search-panel">
+        <Search size={16} />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search nodes, roles, regions" />
+        {query && (
+          <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
+            <X size={15} />
+          </button>
+        )}
+      </section>
+
+      <Legend />
+      <HotRoutes routes={hotRoutes} selectedRouteID={selectedRouteID} routeActivityByID={routeActivityByID} onSelect={selectRoute} />
+      <SelectionDrawer node={selectedNode} route={selectedRoute} connectedRoutes={connectedRoutes} onRouteSelect={selectRoute} />
+    </div>
+  );
+}
+
+async function copyTextToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Fall back for browser contexts where the Clipboard API is present but denied.
+    }
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.setAttribute('readonly', '');
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  textArea.style.top = '0';
+  document.body.appendChild(textArea);
+
+  const selection = document.getSelection();
+  const selectedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+  textArea.select();
+
+  try {
+    const copied = document.execCommand('copy');
+    if (!copied) throw new Error('copy command failed');
+  } finally {
+    document.body.removeChild(textArea);
+    if (selectedRange && selection) {
+      selection.removeAllRanges();
+      selection.addRange(selectedRange);
+    }
+  }
+}
+
+function isPacketActivity(item: PublicActivity): boolean {
+  return item.kind === 'packet' || item.kind === 'route';
+}
+
+function NodeLoadingToast({ failed, drawing }: { failed: boolean; drawing: boolean }) {
+  const title = failed ? 'Retrying positioned nodes' : drawing ? 'Drawing positioned nodes' : 'Loading positioned nodes';
+  const message = failed
+    ? 'Waiting for the public state feed to return map-safe node positions.'
+    : drawing
+      ? 'Placing the public node layer before showing the live map.'
+      : 'Preparing the map before showing live node markers.';
+  return (
+    <div className={`node-loading-toast ${failed ? 'warn' : ''}`} role="status" aria-live="polite">
+      <span className="node-loading-spinner" />
+      <span>
+        <strong>{title}</strong>
+        <em>{message}</em>
+      </span>
+    </div>
+  );
+}

@@ -1,0 +1,233 @@
+package live
+
+import (
+	"encoding/json"
+	"log/slog"
+	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+)
+
+type Hub struct {
+	log           *slog.Logger
+	queueSize     int
+	mu            sync.RWMutex
+	clients       map[*client]struct{}
+	upgrader      websocket.Upgrader
+	seq           atomic.Int64
+	displayMu     sync.Mutex
+	nextDisplayAt int64
+}
+
+type client struct {
+	id      string
+	conn    *websocket.Conn
+	send    chan Envelope
+	created time.Time
+	dropped int
+}
+
+func NewHub(log *slog.Logger, queueSize int, allowedBaseURLs ...string) *Hub {
+	if queueSize < 1 {
+		queueSize = 128
+	}
+	allowedHosts := allowedOriginHosts(allowedBaseURLs)
+	return &Hub{
+		log:       log,
+		queueSize: queueSize,
+		clients:   map[*client]struct{}{},
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return websocketOriginAllowed(r, allowedHosts)
+			},
+		},
+	}
+}
+
+func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	conn, err := h.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		h.log.Warn("websocket upgrade failed", "error", err)
+		return
+	}
+	c := &client{
+		id:      uuid.NewString(),
+		conn:    conn,
+		send:    make(chan Envelope, h.queueSize),
+		created: time.Now(),
+	}
+	h.mu.Lock()
+	h.clients[c] = struct{}{}
+	h.mu.Unlock()
+
+	now := time.Now().UnixMilli()
+	c.send <- Envelope{Version: 1, Type: "hello", Seq: h.seq.Add(1), ServerTime: now, ReceivedAt: now, DisplayAt: now, ConnectionID: c.id}
+	go h.writePump(c)
+	go h.readPump(c)
+}
+
+func (h *Hub) Broadcast(event string, data any) {
+	env := h.eventEnvelope(event, data)
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	for c := range h.clients {
+		select {
+		case c.send <- env:
+		default:
+			c.dropped++
+			now := time.Now().UnixMilli()
+			lag := Envelope{Version: 1, Type: "lagged", Seq: h.seq.Add(1), ServerTime: now, ReceivedAt: now, DisplayAt: now, DroppedCount: c.dropped, Since: c.created.UnixMilli()}
+			select {
+			case c.send <- lag:
+			default:
+			}
+		}
+	}
+}
+
+func (h *Hub) eventEnvelope(event string, data any) Envelope {
+	now := time.Now().UnixMilli()
+	return Envelope{
+		Version:    1,
+		Type:       "event",
+		Event:      event,
+		Seq:        h.seq.Add(1),
+		Data:       data,
+		ServerTime: now,
+		ReceivedAt: now,
+		DisplayAt:  h.reserveDisplayAt(now),
+	}
+}
+
+func (h *Hub) reserveDisplayAt(now int64) int64 {
+	const eventSpacingMs = 140
+	const maxPaceLagMs = 3500
+	h.displayMu.Lock()
+	defer h.displayMu.Unlock()
+	if h.nextDisplayAt < now {
+		h.nextDisplayAt = now
+	}
+	displayAt := h.nextDisplayAt
+	h.nextDisplayAt += eventSpacingMs
+	if h.nextDisplayAt-now > maxPaceLagMs {
+		h.nextDisplayAt = now + maxPaceLagMs
+	}
+	return displayAt
+}
+
+func (h *Hub) ClientCount() int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.clients)
+}
+
+func (h *Hub) remove(c *client) {
+	h.mu.Lock()
+	if _, ok := h.clients[c]; ok {
+		delete(h.clients, c)
+		close(c.send)
+	}
+	h.mu.Unlock()
+	_ = c.conn.Close()
+}
+
+func (h *Hub) writePump(c *client) {
+	ticker := time.NewTicker(25 * time.Second)
+	defer func() {
+		ticker.Stop()
+		h.remove(c)
+	}()
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				return
+			}
+			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.conn.WriteJSON(msg); err != nil {
+				return
+			}
+		case <-ticker.C:
+			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
+	}
+}
+
+func (h *Hub) readPump(c *client) {
+	defer h.remove(c)
+	c.conn.SetReadLimit(4096)
+	_ = c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.conn.SetPongHandler(func(string) error {
+		return c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	})
+	for {
+		_, data, err := c.conn.ReadMessage()
+		if err != nil {
+			return
+		}
+		var incoming struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(data, &incoming); err != nil {
+			continue
+		}
+	}
+}
+
+func allowedOriginHosts(baseURLs []string) map[string]struct{} {
+	out := map[string]struct{}{}
+	for _, raw := range baseURLs {
+		parsed, err := url.Parse(strings.TrimSpace(raw))
+		if err != nil || parsed.Host == "" {
+			continue
+		}
+		out[strings.ToLower(parsed.Host)] = struct{}{}
+	}
+	return out
+}
+
+func websocketOriginAllowed(r *http.Request, allowedHosts map[string]struct{}) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Host == "" {
+		return false
+	}
+	originHost := strings.ToLower(parsed.Host)
+	requestHost := strings.ToLower(r.Host)
+	if originHost == requestHost {
+		return true
+	}
+	if _, ok := allowedHosts[originHost]; ok {
+		return true
+	}
+	return isLocalHost(parsed.Hostname()) && isLocalHost(hostnameOnly(r.Host))
+}
+
+func isLocalHost(hostname string) bool {
+	switch strings.ToLower(strings.Trim(hostname, "[]")) {
+	case "localhost", "127.0.0.1", "::1":
+		return true
+	default:
+		return false
+	}
+}
+
+func hostnameOnly(hostport string) string {
+	parsed, err := url.Parse("//" + hostport)
+	if err != nil || parsed.Hostname() == "" {
+		return hostport
+	}
+	return parsed.Hostname()
+}
