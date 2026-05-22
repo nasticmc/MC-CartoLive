@@ -11,6 +11,9 @@ privacy-safe public APIs.
 The app stays intentionally simple for operators: one Go backend, one embedded
 React frontend, one SQLite database, one Docker Compose service.
 
+Public Instances: 
+Meshcore Canada MQTT - https://routes.canadaverse.org/
+
 ## Screenshots
 
 Real public map data from the local production container:
