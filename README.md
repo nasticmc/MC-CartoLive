@@ -3,7 +3,7 @@
 Also known as **MC-CartoLive**.
 
 MC-CartoLive is a Dockerized live MQTT-to-map dashboard for MeshCore public RF
-observations. It ingests MeshCore Canada broker traffic, resolves only
+observations. It ingests MeshCore broker traffic, resolves only
 high-confidence RF routes, and serves a smooth public MapLibre dashboard with
 live packet motion, observer activity, decoded public message bubbles, and
 privacy-safe public APIs.
