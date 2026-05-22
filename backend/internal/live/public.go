@@ -569,10 +569,10 @@ func validPublicCoords(lat float64, lng float64) bool {
 		!math.IsInf(lng, 0) &&
 		lat != 0 &&
 		lng != 0 &&
-		lat >= 41 &&
-		lat <= 84 &&
-		lng >= -142 &&
-		lng <= -52
+		lat >= -90 &&
+		lat <= 90 &&
+		lng >= -180 &&
+		lng <= 180
 }
 
 func frequencyBucket(count int, maxCount int) int {

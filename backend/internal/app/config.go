@@ -69,10 +69,10 @@ func LoadConfig() (Config, error) {
 		RequireRSSIOrSNRForEdge: envBool("REQUIRE_RSSI_OR_SNR_FOR_EDGE", true),
 		MaxUnverifiedEdgeKM:     envFloat("MAX_UNVERIFIED_EDGE_KM", 150),
 		AllowLongTraceEdges:     envBool("ALLOW_LONG_TRACE_EDGES", true),
-		DefaultCenterLat:        envFloat("DEFAULT_CENTER_LAT", 56.1304),
-		DefaultCenterLng:        envFloat("DEFAULT_CENTER_LNG", -106.3468),
-		DefaultZoom:             envFloat("DEFAULT_ZOOM", 3.5),
-		DefaultRegion:           envString("DEFAULT_REGION", "CANADA"),
+		DefaultCenterLat:        envFloat("DEFAULT_CENTER_LAT", -25.2744),
+		DefaultCenterLng:        envFloat("DEFAULT_CENTER_LNG", 133.7751),
+		DefaultZoom:             envFloat("DEFAULT_ZOOM", 4.35),
+		DefaultRegion:           envString("DEFAULT_REGION", "AUSTRALIA"),
 		PublicMode:              envBool("PUBLIC_MODE", true),
 		RecentPacketLimit:       envInt("RECENT_PACKET_LIMIT", 1000),
 		RecentEdgeEventLimit:    envInt("RECENT_EDGE_EVENT_LIMIT", 2000),
@@ -164,17 +164,9 @@ func envListFallback(key string, fallback []string) []string {
 
 func defaultPublicIATAs() []string {
 	return []string{
-		"YYZ", "YTZ", "YOW", "YHM", "YKF", "YXU", "YOO", "YKZ", "YAM", "YQT", "YSB", "YTS", "YQG", "YYB", "YGK", "YPQ", "YTR", "YHD", "YPL", "YND",
-		"YUL", "YMX", "YQB", "YBG", "YVO", "YHU", "YRJ", "YGL", "YSC", "YTQ", "YUY", "YZV", "YGP", "YRQ",
-		"YVR", "YYJ", "YXX", "YLW", "YXS", "YPR", "YXT", "YQQ", "YCD", "YYD", "YDQ", "YXJ", "YYF", "YCG", "YKA", "YXC", "YBC",
-		"YYC", "YEG", "YMM", "YQU", "YQL", "YXH",
-		"YQR", "YXE", "YPA",
-		"YWG", "YBR", "YTH", "YDN", "YPG",
-		"YFC", "YSJ", "YQM", "ZBF",
-		"YHZ", "YQY", "YQI",
-		"YYG",
-		"YYT", "YQX", "YDF", "YYR", "YWK",
-		"YXY", "YZF", "YFB", "YEV", "YHY",
+		"SYD", "MEL", "BNE", "PER", "ADL", "CBR", "HBA", "DRW", "CNS", "TSV", "OOL", "NTL", "MCY", "ABX", "LST", "MKY",
+		"ASP", "AYQ", "ISA", "ROK", "PPP", "BNK", "GLT", "BDB", "BHQ", "TMW", "WGA", "SHE", "MQL", "PHE", "KGI", "BME",
+		"AKL", "CHC", "WLG", "ZQN",
 	}
 }
 
