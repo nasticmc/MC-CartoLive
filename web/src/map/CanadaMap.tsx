@@ -435,8 +435,8 @@ export default function CanadaMap({
   const [hoveredNode, setHoveredNode] = useState<HoveredNodeToast | null>(null);
   const [screenNodeLabels, setScreenNodeLabels] = useState<ScreenNodeLabel[]>([]);
   const [messageBubbles, setMessageBubbles] = useState<MessageBubble[]>([]);
-  const [mapZoom, setMapZoom] = useState(3.35);
-  const [mapCenter, setMapCenter] = useState({ lat: 56.1304, lng: -106.3468 });
+  const [mapZoom, setMapZoom] = useState(4.35);
+  const [mapCenter, setMapCenter] = useState({ lat: -25.2744, lng: 133.7751 });
   const [mapInitError, setMapInitError] = useState('');
   const [nodeLabelClock, setNodeLabelClock] = useState(() => Date.now());
   const nodeFocus = useMemo(() => nodeFocusFromRoutes(selectedNodeID, routes), [selectedNodeID, routes]);
@@ -463,7 +463,7 @@ export default function CanadaMap({
   const routePayloadGlowTimerRef = useRef<number | null>(null);
   const clusterActivityGlowRef = useRef<Map<string, ClusterActivityGlow>>(new Map());
   const clusterActivityGlowTimerRef = useRef<number | null>(null);
-  const mapVisualModeRef = useRef<MapVisualMode>(visualModeForZoom(initialView?.z ?? 3.35));
+  const mapVisualModeRef = useRef<MapVisualMode>(visualModeForZoom(initialView?.z ?? 4.35));
   const nodeLabelFrameRef = useRef<number | null>(null);
   const messageBubbleCleanupTimersRef = useRef<Map<string, number>>(new Map());
   const pageHiddenRef = useRef(typeof document !== 'undefined' ? document.hidden : false);
@@ -593,12 +593,12 @@ export default function CanadaMap({
     const startupView = initialViewRef.current ?? parseSharedView(window.location.search);
     if (startupView) initialViewRef.current = startupView;
     if (startupView) fitInitialNodesRef.current = true;
-    setMapZoom(Number((startupView?.z ?? 3.35).toFixed(2)));
+    setMapZoom(Number((startupView?.z ?? 4.35).toFixed(2)));
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: mapStyle,
-      center: startupView ? [startupView.lng, startupView.lat] : [-106.3468, 56.1304],
-      zoom: startupView?.z ?? 3.35,
+      center: startupView ? [startupView.lng, startupView.lat] : [133.7751, -25.2744],
+      zoom: startupView?.z ?? 4.35,
       minZoom: 2.4,
       maxZoom: 13,
       fadeDuration: 0,

@@ -156,8 +156,8 @@ describe('packet animation timing', () => {
       segments: [
         {
           routeId: 'r-ab',
-          from: { nodeId: 'node-a', label: 'A', lat: 43.45, lng: -80.49 },
-          to: { nodeId: 'node-b', label: 'B', lat: 43.65, lng: -79.38 },
+          from: { nodeId: 'node-a', label: 'A', lat: -33.86, lng: 151.21 },
+          to: { nodeId: 'node-b', label: 'B', lat: -37.81, lng: 144.96 },
           distanceKm: 93
         }
       ]
@@ -166,7 +166,7 @@ describe('packet animation timing', () => {
       id: 'observer-1',
       payloadTypeName: 'PLAIN_TEXT',
       heardAt: Date.now(),
-      location: { label: 'YYZ observer', iata: 'YYZ', lat: 43.65, lng: -79.38 }
+      location: { label: 'SYD observer', iata: 'SYD', lat: -33.86, lng: 151.21 }
     });
 
     expect((animator as any).traceHits).toHaveLength(1);

@@ -1,10 +1,10 @@
 import type { PublicNode, PublicRouteEndpoint } from '../types';
 
-export const CANADA_MAP_BOUNDS = {
-  minLat: 41,
-  maxLat: 84,
-  minLng: -142,
-  maxLng: -52
+export const AUSTRALIA_MAP_BOUNDS = {
+  minLat: -44.5,
+  maxLat: -9,
+  minLng: 112,
+  maxLng: 154
 };
 
 export function isMappableLatLng(lat: number, lng: number): boolean {
@@ -13,10 +13,10 @@ export function isMappableLatLng(lat: number, lng: number): boolean {
     Number.isFinite(lng) &&
     lat !== 0 &&
     lng !== 0 &&
-    lat >= CANADA_MAP_BOUNDS.minLat &&
-    lat <= CANADA_MAP_BOUNDS.maxLat &&
-    lng >= CANADA_MAP_BOUNDS.minLng &&
-    lng <= CANADA_MAP_BOUNDS.maxLng
+    lat >= AUSTRALIA_MAP_BOUNDS.minLat &&
+    lat <= AUSTRALIA_MAP_BOUNDS.maxLat &&
+    lng >= AUSTRALIA_MAP_BOUNDS.minLng &&
+    lng <= AUSTRALIA_MAP_BOUNDS.maxLng
   );
 }
 

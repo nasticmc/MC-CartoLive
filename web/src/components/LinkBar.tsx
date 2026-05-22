@@ -2,14 +2,14 @@ import { ExternalLink, Github } from 'lucide-react';
 import { appVersion, buildNumber } from '../buildInfo';
 
 const GITHUB_URL = 'https://github.com/n30nex/MC-CartoLive';
-const MESHCORE_CANADA_URL = 'https://meshcore.ca/';
+const EASTMESH_AU_URL = 'https://eastmesh.au/';
 
 export default function LinkBar() {
   return (
     <nav className="link-bar" aria-label="Project links">
-      <a className="link-bar-brand" href={MESHCORE_CANADA_URL} target="_blank" rel="noreferrer" title="Open MeshCore Canada">
+      <a className="link-bar-brand" href={EASTMESH_AU_URL} target="_blank" rel="noreferrer" title="Open EastMesh.au">
         <img src="/meshcore-canada-favicon.png" alt="" aria-hidden="true" />
-        <span>MeshCore Canada</span>
+        <span>EastMesh.au</span>
       </a>
       <div className="link-bar-build" aria-label={`MC-CartoLive version ${appVersion}, build ${buildNumber}`}>
         <strong>MC-CartoLive</strong>
