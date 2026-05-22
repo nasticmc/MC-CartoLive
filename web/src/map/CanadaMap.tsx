@@ -52,6 +52,7 @@ interface Props {
   pulses: PublicRoutePulse[];
   observerBursts: PublicObserverBurst[];
   paused: boolean;
+  followTraffic: boolean;
   clearToken: number;
   selectedNodeID: string | null;
   selectedRouteID: string | null;
@@ -144,6 +145,10 @@ const ROUTE_VISUAL_CADENCE_MS = 150;
 const OBSERVER_VISUAL_CADENCE_MS = 105;
 const MAX_PENDING_ROUTE_VISUALS = 220;
 const MAX_PENDING_OBSERVER_VISUALS = 360;
+const FOLLOW_TRAFFIC_MIN_INTERVAL_MS = 3200;
+const FOLLOW_TRAFFIC_DURATION_MS = 1450;
+const FOLLOW_TRAFFIC_ROUTE_MAX_ZOOM = 8.9;
+const FOLLOW_TRAFFIC_POINT_ZOOM = 8.4;
 
 const routeColors = ['#2563eb', '#06b6d4', '#22c55e', '#f97316', '#ef4444'];
 
@@ -414,6 +419,7 @@ export default function CanadaMap({
   pulses,
   observerBursts,
   paused,
+  followTraffic,
   clearToken,
   selectedNodeID,
   selectedRouteID,
@@ -445,6 +451,8 @@ export default function CanadaMap({
   const seenObserverBurstIDsRef = useRef<Set<string>>(new Set());
   const pendingPulsesRef = useRef<PublicRoutePulse[]>([]);
   const pendingObserverBurstsRef = useRef<PublicObserverBurst[]>([]);
+  const followTrafficRef = useRef(followTraffic);
+  const followTrafficStateRef = useRef({ lastAt: 0, lastID: '' });
   const pulseSchedulerTimerRef = useRef<number | null>(null);
   const observerSchedulerTimerRef = useRef<number | null>(null);
   const nodeActivityRef = useRef<Map<string, NodeActivity>>(new Map());
@@ -485,6 +493,7 @@ export default function CanadaMap({
     const map = mapRef.current;
     const shouldAnimate = shouldAnimateLiveEvent(visualReceivedAt(pulse), Date.now(), pageHiddenRef.current);
     if (!map) return;
+    if (shouldAnimate) followTrafficPulse(map, pulse, followTrafficRef.current, followTrafficStateRef);
     if (isClusterMode(map)) {
       if (shouldAnimate && addPulseClusterActivityGlow(map, clusterActivityGlowRef.current, pulse)) {
         startClusterActivityGlowTimer(map, clusterActivityGlowRef, clusterActivityGlowTimerRef);
@@ -510,6 +519,7 @@ export default function CanadaMap({
   const renderScheduledObserverBurst = (burst: PublicObserverBurst) => {
     const map = mapRef.current;
     const shouldAnimate = shouldAnimateLiveEvent(visualReceivedAt(burst), Date.now(), pageHiddenRef.current);
+    if (map && shouldAnimate) followTrafficObserverBurst(map, burst, followTrafficRef.current, followTrafficStateRef);
     if (map && isClusterMode(map)) {
       if (shouldAnimate && addObserverBurstClusterActivityGlow(map, clusterActivityGlowRef.current, burst)) {
         startClusterActivityGlowTimer(map, clusterActivityGlowRef, clusterActivityGlowTimerRef);
@@ -779,6 +789,20 @@ export default function CanadaMap({
   useEffect(() => {
     animatorRef.current?.setPaused(paused);
   }, [paused]);
+
+  useEffect(() => {
+    followTrafficRef.current = followTraffic;
+    if (!followTraffic) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const latestPulse = pulses[0];
+    const latestBurst = observerBursts[0];
+    if (latestPulse && (!latestBurst || visualReceivedAt(latestPulse) >= visualReceivedAt(latestBurst))) {
+      followTrafficPulse(map, latestPulse, true, followTrafficStateRef, true);
+    } else if (latestBurst) {
+      followTrafficObserverBurst(map, latestBurst, true, followTrafficStateRef, true);
+    }
+  }, [followTraffic, pulses, observerBursts]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -2036,6 +2060,96 @@ function fitToRoute(map: maplibregl.Map, route: PublicRoute, duration: number) {
   ];
   const bounds = points.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(points[0], points[0]));
   map.fitBounds(bounds, { padding: 120, maxZoom: 10.5, duration });
+}
+
+function followTrafficPulse(
+  map: maplibregl.Map,
+  pulse: PublicRoutePulse,
+  enabled: boolean,
+  stateRef: MutableRefObject<{ lastAt: number; lastID: string }>,
+  immediate = false
+) {
+  if (!enabled) return;
+  const points = routePulsePoints(pulse);
+  followTrafficTarget(map, pulse.id, points, stateRef, immediate);
+}
+
+function followTrafficObserverBurst(
+  map: maplibregl.Map,
+  burst: PublicObserverBurst,
+  enabled: boolean,
+  stateRef: MutableRefObject<{ lastAt: number; lastID: string }>,
+  immediate = false
+) {
+  if (!enabled) return;
+  followTrafficTarget(map, burst.id, [[burst.location.lng, burst.location.lat]], stateRef, immediate);
+}
+
+function followTrafficTarget(
+  map: maplibregl.Map,
+  id: string,
+  points: Array<[number, number]>,
+  stateRef: MutableRefObject<{ lastAt: number; lastID: string }>,
+  immediate: boolean
+) {
+  const usablePoints = points.filter(isFollowPoint);
+  if (usablePoints.length === 0) return;
+  const now = Date.now();
+  const state = stateRef.current;
+  if (state.lastID === id) return;
+  if (!immediate && now - state.lastAt < FOLLOW_TRAFFIC_MIN_INTERVAL_MS) return;
+  state.lastAt = now;
+  state.lastID = id;
+  map.stop();
+  if (usablePoints.length === 1) {
+    const currentZoom = map.getZoom();
+    const zoom = Math.max(FOLLOW_TRAFFIC_POINT_ZOOM, Math.min(currentZoom, FOLLOW_TRAFFIC_ROUTE_MAX_ZOOM + 0.7));
+    map.easeTo({
+      center: usablePoints[0],
+      zoom,
+      duration: immediate ? 900 : FOLLOW_TRAFFIC_DURATION_MS,
+      easing: easeOutCubic
+    });
+    return;
+  }
+  const bounds = usablePoints.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(usablePoints[0], usablePoints[0]));
+  map.fitBounds(bounds, {
+    padding: followTrafficPadding(map),
+    maxZoom: FOLLOW_TRAFFIC_ROUTE_MAX_ZOOM,
+    duration: immediate ? 950 : FOLLOW_TRAFFIC_DURATION_MS,
+    easing: easeOutCubic
+  });
+}
+
+function routePulsePoints(pulse: PublicRoutePulse): Array<[number, number]> {
+  const points: Array<[number, number]> = [];
+  for (const segment of pulse.segments) {
+    points.push([segment.from.lng, segment.from.lat], [segment.to.lng, segment.to.lat]);
+  }
+  return points;
+}
+
+function isFollowPoint(point: [number, number]): boolean {
+  const [lng, lat] = point;
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52;
+}
+
+function followTrafficPadding(map: maplibregl.Map): maplibregl.PaddingOptions {
+  const container = map.getContainer();
+  const width = container.clientWidth;
+  if (width <= 760) {
+    return { top: 188, right: 30, bottom: 210, left: 30 };
+  }
+  return {
+    top: 150,
+    right: Math.min(360, Math.round(width * 0.24)),
+    bottom: 84,
+    left: Math.min(360, Math.round(width * 0.24))
+  };
+}
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 function addGeneratedNodeIcons(map: maplibregl.Map) {

@@ -32,7 +32,7 @@ export default function StatusBar({ stats, socketStatus, nodeCount, routeCount, 
         <span className="packet-type-signal" key={latestPacketID ?? latestPayloadTypeName ?? 'none'} />
         <span>{latestPayload.shortLabel}</span>
       </div>
-      <div className="status-pill">
+      <div className="status-pill packets-total">
         <Database size={15} />
         <span>{formatPacketsTotal(stats?.packets)}</span>
       </div>
@@ -40,7 +40,7 @@ export default function StatusBar({ stats, socketStatus, nodeCount, routeCount, 
         <Zap size={15} />
         <span>{coverage.receivedPerMinute}/min received</span>
       </div>
-      <div className="status-pill route">
+      <div className="status-pill route routed-rate">
         <Route size={15} />
         <span>{coverage.routeAnimatedPerMinute}/min routed</span>
       </div>
@@ -52,11 +52,11 @@ export default function StatusBar({ stats, socketStatus, nodeCount, routeCount, 
         <MapPin size={15} />
         <span>{coverage.unmappedPerMinute}/min unresolved</span>
       </div>
-      <div className="status-pill">
+      <div className="status-pill node-count">
         <Shield size={15} />
         <span>{nodeCount} nodes</span>
       </div>
-      <div className="status-pill route">
+      <div className="status-pill route route-count">
         <Route size={15} />
         <span>{routeCount} routes</span>
       </div>

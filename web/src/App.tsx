@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LocateFixed, Pause, Play, RotateCcw, Search, Share2, X } from 'lucide-react';
+import { LocateFixed, Pause, Play, RadioTower, RotateCcw, Search, Share2, X } from 'lucide-react';
 import { fetchPublicState } from './api';
 import { connectPublicSocket } from './ws';
 import {
@@ -15,6 +15,7 @@ import {
 import CanadaMap, { type MapAction } from './map/CanadaMap';
 import HotRoutes from './components/HotRoutes';
 import Legend from './components/Legend';
+import LinkBar from './components/LinkBar';
 import SelectionDrawer from './components/SelectionDrawer';
 import StatusBar from './components/StatusBar';
 import { buildSharedViewURL, parseSharedView, type MapViewState } from './shareView';
@@ -25,6 +26,7 @@ export default function App() {
   const [state, setState] = useState<AppState>(emptyState);
   const [socketStatus, setSocketStatus] = useState('starting');
   const [paused, setPaused] = useState(false);
+  const [followTraffic, setFollowTraffic] = useState(false);
   const [query, setQuery] = useState(() => sharedViewRef.current?.q ?? '');
   const [clearToken, setClearToken] = useState(0);
   const [actionToken, setActionToken] = useState(0);
@@ -256,6 +258,7 @@ export default function App() {
         pulses={state.pulses}
         observerBursts={state.observerBursts}
         paused={paused}
+        followTraffic={followTraffic}
         clearToken={clearToken}
         selectedNodeID={selectedNodeID}
         selectedRouteID={selectedRouteID}
@@ -268,6 +271,7 @@ export default function App() {
         onSelectRoute={selectRoute}
       />
       {loadingPositionedNodes && <NodeLoadingToast failed={nodeLoadFailed} drawing={initialNodesReceived} />}
+      <LinkBar />
       <StatusBar
         stats={state.stats}
         socketStatus={socketStatus}
@@ -296,6 +300,17 @@ export default function App() {
         </button>
       </div>
       {shareToast && <div className="share-toast" role="status">{shareToast}</div>}
+
+      <button
+        className={`follow-traffic-button ${followTraffic ? 'active' : ''}`}
+        type="button"
+        aria-pressed={followTraffic}
+        title={followTraffic ? 'Stop following live packet movement' : 'Follow live packet movement'}
+        onClick={() => setFollowTraffic((value) => !value)}
+      >
+        <RadioTower size={15} />
+        <span>Live Follow</span>
+      </button>
 
       <section className="search-panel">
         <Search size={16} />

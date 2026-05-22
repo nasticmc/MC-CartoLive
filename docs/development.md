@@ -71,6 +71,15 @@ npm run dev
 The frontend expects the Go backend for live API/WebSocket data when running
 outside Docker.
 
+Set `VITE_BUILD_NUMBER` when you want a deterministic build label in the top
+project bar. Docker and CI builds also pick up `GITHUB_SHA` when present.
+
+## Mobile UI
+
+The mobile layout keeps the map, route motion, packet comets, and Live Follow
+control as the primary experience. Secondary panels, status toasts, the legend,
+and busy-path lists are hidden by default at small viewport widths.
+
 ## Release Checks
 
 Run before publishing or opening a pull request:
