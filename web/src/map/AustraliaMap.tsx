@@ -63,6 +63,7 @@ interface Props {
   onViewChange: (view: MapViewState) => void;
   onSelectNode: (nodeID: string) => void;
   onSelectRoute: (routeID: string) => void;
+  onClearSelection: () => void;
 }
 
 type FeatureCollection = {
@@ -429,7 +430,8 @@ export default function AustraliaMap({
   onPositionedNodesRendered,
   onViewChange,
   onSelectNode,
-  onSelectRoute
+  onSelectRoute,
+  onClearSelection
 }: Props) {
   const [hoveredRouteID, setHoveredRouteID] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<HoveredNodeToast | null>(null);
@@ -476,6 +478,7 @@ export default function AustraliaMap({
   const viewChangeRef = useRef(onViewChange);
   const selectedNodeRef = useRef(onSelectNode);
   const selectedRouteRef = useRef(onSelectRoute);
+  const clearSelectionRef = useRef(onClearSelection);
 
   const showMessageBubble = (map: maplibregl.Map, bubble: MessageBubble | null) => {
     if (!bubble) return;
@@ -574,7 +577,8 @@ export default function AustraliaMap({
     viewChangeRef.current = onViewChange;
     selectedNodeRef.current = onSelectNode;
     selectedRouteRef.current = onSelectRoute;
-  }, [onPositionedNodesRendered, onViewChange, onSelectNode, onSelectRoute]);
+    clearSelectionRef.current = onClearSelection;
+  }, [onPositionedNodesRendered, onViewChange, onSelectNode, onSelectRoute, onClearSelection]);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -668,7 +672,7 @@ export default function AustraliaMap({
       }
       try {
         addPublicLayers(map);
-        bindLayerEvents(map, nodesRef, selectedNodeRef, selectedRouteRef, setHoveredRouteID, setHoveredNode);
+        bindLayerEvents(map, nodesRef, selectedNodeRef, selectedRouteRef, clearSelectionRef, setHoveredRouteID, setHoveredNode);
         try {
           addBaseMapLayer(map);
         } catch {
@@ -1861,6 +1865,7 @@ function bindLayerEvents(
   nodesRef: MutableRefObject<PublicNode[]>,
   selectedNodeRef: MutableRefObject<(nodeID: string) => void>,
   selectedRouteRef: MutableRefObject<(routeID: string) => void>,
+  clearSelectionRef: MutableRefObject<() => void>,
   setHoveredRouteID: Dispatch<SetStateAction<string | null>>,
   setHoveredNode: Dispatch<SetStateAction<HoveredNodeToast | null>>
 ) {
@@ -1913,6 +1918,11 @@ function bindLayerEvents(
   });
   map.on('mouseleave', ROUTE_HIT_LAYER, () => {
     setHoveredRouteID(null);
+  });
+
+  map.on('click', (event) => {
+    const features = map.queryRenderedFeatures(event.point, { layers: [CLUSTER_LAYER, CLUSTER_COUNT_LAYER, NODE_LAYER, ROUTE_HIT_LAYER] });
+    if (features.length === 0) clearSelectionRef.current();
   });
   for (const layer of [CLUSTER_LAYER, CLUSTER_COUNT_LAYER, NODE_LAYER, ROUTE_HIT_LAYER]) {
     map.on('mouseenter', layer, () => {

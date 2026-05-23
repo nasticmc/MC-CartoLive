@@ -218,6 +218,19 @@ export default function App() {
     else setMapAction({ type: 'reset', token });
   };
 
+  const clearSelection = useCallback(() => {
+    setSelectedNodeID(null);
+    setSelectedRouteID(null);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') clearSelection();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [clearSelection]);
+
   const selectNode = (nodeID: string) => {
     setSelectedNodeID(nodeID);
     setSelectedRouteID(null);
@@ -269,6 +282,7 @@ export default function App() {
         onViewChange={handleViewChange}
         onSelectNode={selectNode}
         onSelectRoute={selectRoute}
+        onClearSelection={clearSelection}
       />
       {loadingPositionedNodes && <NodeLoadingToast failed={nodeLoadFailed} drawing={initialNodesReceived} />}
       <LinkBar />
@@ -324,7 +338,7 @@ export default function App() {
 
       <Legend />
       <HotRoutes routes={hotRoutes} selectedRouteID={selectedRouteID} routeActivityByID={routeActivityByID} onSelect={selectRoute} />
-      <SelectionDrawer node={selectedNode} route={selectedRoute} connectedRoutes={connectedRoutes} onRouteSelect={selectRoute} />
+      <SelectionDrawer node={selectedNode} route={selectedRoute} connectedRoutes={connectedRoutes} allRoutes={visibleRoutes} onRouteSelect={selectRoute} onClose={clearSelection} />
     </div>
   );
 }
