@@ -52,6 +52,7 @@ interface Props {
   pulses: PublicRoutePulse[];
   observerBursts: PublicObserverBurst[];
   paused: boolean;
+  mapTheme: 'dark' | 'light';
   followTraffic: boolean;
   clearToken: number;
   selectedNodeID: string | null;
@@ -167,6 +168,16 @@ const mapStyle: maplibregl.StyleSpecification = {
       tileSize: 256,
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     },
+    cartoDark: {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    },
     [NODE_SOURCE]: {
       type: 'geojson',
       data: emptyCollection() as any,
@@ -195,6 +206,14 @@ const mapStyle: maplibregl.StyleSpecification = {
       source: 'cartoLight',
       minzoom: 0,
       maxzoom: 20
+    },
+    {
+      id: 'carto-dark',
+      type: 'raster',
+      source: 'cartoDark',
+      minzoom: 0,
+      maxzoom: 20,
+      layout: { visibility: 'none' }
     },
     {
       id: ROUTE_GLOW_LAYER,
@@ -420,6 +439,7 @@ export default function AustraliaMap({
   pulses,
   observerBursts,
   paused,
+  mapTheme,
   followTraffic,
   clearToken,
   selectedNodeID,
@@ -472,6 +492,7 @@ export default function AustraliaMap({
   const initialViewRef = useRef(initialView);
   const nodesRef = useRef(nodes);
   const routesRef = useRef(routes);
+  const mapThemeRef = useRef(mapTheme);
   const selectedNodeIDRef = useRef(selectedNodeID);
   const nodeFocusRef = useRef(nodeFocus);
   const positionedNodesRenderedRef = useRef(onPositionedNodesRendered);
@@ -557,12 +578,28 @@ export default function AustraliaMap({
   };
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const lightVisibility = mapTheme === 'light' ? 'visible' : 'none';
+    const darkVisibility = mapTheme === 'dark' ? 'visible' : 'none';
+    if (map.getLayer('carto-light')) map.setLayoutProperty('carto-light', 'visibility', lightVisibility);
+    if (map.getLayer('carto-dark')) map.setLayoutProperty('carto-dark', 'visibility', darkVisibility);
+    if (map.getLayer('map-background')) {
+      map.setPaintProperty('map-background', 'background-color', mapTheme === 'light' ? '#e5e7eb' : '#020617');
+    }
+  }, [mapTheme]);
+
+  useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
 
   useEffect(() => {
     routesRef.current = routes;
   }, [routes]);
+
+  useEffect(() => {
+    mapThemeRef.current = mapTheme;
+  }, [mapTheme]);
 
   useEffect(() => {
     selectedNodeIDRef.current = selectedNodeID;
@@ -675,6 +712,13 @@ export default function AustraliaMap({
         bindLayerEvents(map, nodesRef, selectedNodeRef, selectedRouteRef, clearSelectionRef, setHoveredRouteID, setHoveredNode);
         try {
           addBaseMapLayer(map);
+          const lightVisibility = mapThemeRef.current === 'light' ? 'visible' : 'none';
+          const darkVisibility = mapThemeRef.current === 'dark' ? 'visible' : 'none';
+          if (map.getLayer('carto-light')) map.setLayoutProperty('carto-light', 'visibility', lightVisibility);
+          if (map.getLayer('carto-dark')) map.setLayoutProperty('carto-dark', 'visibility', darkVisibility);
+          if (map.getLayer('map-background')) {
+            map.setPaintProperty('map-background', 'background-color', mapThemeRef.current === 'light' ? '#e5e7eb' : '#020617');
+          }
         } catch {
           // The public live layers must not be blocked by external basemap tile availability.
         }
@@ -873,7 +917,7 @@ export default function AustraliaMap({
 
   return (
     <div
-      className={`map-wrap ${loading ? 'loading' : ''}`}
+      className={`map-wrap theme-${mapTheme} ${loading ? 'loading' : ''}`}
       data-map-zoom={mapZoom}
       data-map-center-lat={mapCenter.lat}
       data-map-center-lng={mapCenter.lng}
@@ -942,6 +986,31 @@ function addBaseMapLayer(map: maplibregl.Map) {
         source: 'cartoLight',
         minzoom: 0,
         maxzoom: 20
+      },
+      ROUTE_GLOW_LAYER
+    );
+  }
+  if (!map.getSource('cartoDark')) {
+    map.addSource('cartoDark', {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    });
+  }
+  if (!map.getLayer('carto-dark')) {
+    map.addLayer(
+      {
+        id: 'carto-dark',
+        type: 'raster',
+        source: 'cartoDark',
+        minzoom: 0,
+        maxzoom: 20,
+        layout: { visibility: 'none' }
       },
       ROUTE_GLOW_LAYER
     );

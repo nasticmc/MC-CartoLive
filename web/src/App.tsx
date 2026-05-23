@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LocateFixed, Pause, Play, RadioTower, RotateCcw, Search, Share2, X } from 'lucide-react';
+import { LocateFixed, Moon, Pause, Play, RadioTower, RotateCcw, Search, Share2, Sun, X } from 'lucide-react';
 import { fetchPublicState } from './api';
 import { connectPublicSocket } from './ws';
 import {
@@ -27,6 +27,7 @@ export default function App() {
   const [socketStatus, setSocketStatus] = useState('starting');
   const [paused, setPaused] = useState(false);
   const [followTraffic, setFollowTraffic] = useState(false);
+  const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark');
   const [query, setQuery] = useState(() => sharedViewRef.current?.q ?? '');
   const [clearToken, setClearToken] = useState(0);
   const [actionToken, setActionToken] = useState(0);
@@ -271,6 +272,7 @@ export default function App() {
         pulses={state.pulses}
         observerBursts={state.observerBursts}
         paused={paused}
+        mapTheme={mapTheme}
         followTraffic={followTraffic}
         clearToken={clearToken}
         selectedNodeID={selectedNodeID}
@@ -299,6 +301,14 @@ export default function App() {
       <div className="top-actions">
         <button className="icon-button" type="button" title={paused ? 'Resume packet flow' : 'Pause packet flow'} onClick={() => setPaused((value) => !value)}>
           {paused ? <Play size={18} /> : <Pause size={18} />}
+        </button>
+        <button
+          className="icon-button"
+          type="button"
+          title={mapTheme === 'dark' ? 'Switch to light map' : 'Switch to dark map'}
+          onClick={() => setMapTheme((value) => (value === 'dark' ? 'light' : 'dark'))}
+        >
+          {mapTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
         <button className="icon-button" type="button" title="Clear active pulses" onClick={() => setClearToken((value) => value + 1)}>
           <RotateCcw size={18} />
