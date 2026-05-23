@@ -98,13 +98,13 @@ func TestPublicMessageTextReadsCoreScopeDecodedJSONString(t *testing.T) {
 func TestResolverHighConfidenceSingleRepeater(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t, ctx)
-	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "YKF")
+	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "SYD")
 	resolver := resolve.New(st, []string{"repeater", "room_server"})
 	parsed, err := meshcore.ParsePacket([]byte{byte((meshcore.PayloadPlainText << 2) | meshcore.RouteFlood), 0x01, 0xAA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := resolver.Resolve(ctx, "YKF", parsed)
+	result, err := resolver.Resolve(ctx, "SYD", parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,14 +116,14 @@ func TestResolverHighConfidenceSingleRepeater(t *testing.T) {
 func TestResolverCollisionIsAmbiguous(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t, ctx)
-	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "YKF")
-	addNode(t, ctx, st, "AA11000000000000000000000000000000000000000000000000000000000000", "repeater", "YKF")
+	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "SYD")
+	addNode(t, ctx, st, "AA11000000000000000000000000000000000000000000000000000000000000", "repeater", "SYD")
 	resolver := resolve.New(st, []string{"repeater", "room_server"})
 	parsed, err := meshcore.ParsePacket([]byte{byte((meshcore.PayloadPlainText << 2) | meshcore.RouteFlood), 0x01, 0xAA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := resolver.Resolve(ctx, "YKF", parsed)
+	result, err := resolver.Resolve(ctx, "SYD", parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,13 +135,13 @@ func TestResolverCollisionIsAmbiguous(t *testing.T) {
 func TestResolverCompanionIsRoleInvalid(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t, ctx)
-	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "companion", "YKF")
+	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "companion", "SYD")
 	resolver := resolve.New(st, []string{"repeater", "room_server"})
 	parsed, err := meshcore.ParsePacket([]byte{byte((meshcore.PayloadPlainText << 2) | meshcore.RouteFlood), 0x01, 0xAA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := resolver.Resolve(ctx, "YKF", parsed)
+	result, err := resolver.Resolve(ctx, "SYD", parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,13 +153,13 @@ func TestResolverCompanionIsRoleInvalid(t *testing.T) {
 func TestResolverDuplicatePrefixRejected(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t, ctx)
-	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "YKF")
+	addNode(t, ctx, st, "AA00000000000000000000000000000000000000000000000000000000000000", "repeater", "SYD")
 	resolver := resolve.New(st, []string{"repeater", "room_server"})
 	parsed, err := meshcore.ParsePacket([]byte{byte((meshcore.PayloadPlainText << 2) | meshcore.RouteFlood), 0x02, 0xAA, 0xAA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := resolver.Resolve(ctx, "YKF", parsed)
+	result, err := resolver.Resolve(ctx, "SYD", parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,8 +180,8 @@ func newTestStore(t *testing.T, ctx context.Context) *store.Store {
 
 func addNode(t *testing.T, ctx context.Context, st *store.Store, publicKey string, role string, iata string) {
 	t.Helper()
-	lat := 43.4
-	lng := -80.4
+	lat := -33.8688
+	lng := 151.2093
 	nodeType := 2
 	if role == "companion" {
 		nodeType = 1

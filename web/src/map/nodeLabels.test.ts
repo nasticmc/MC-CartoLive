@@ -24,11 +24,11 @@ describe('map node labels', () => {
       id: 'n1',
       label: 'Downtown Repeater Alpha',
       role: 'repeater',
-      latitude: 43.65,
-      longitude: -79.38,
+      latitude: -37.8136,
+      longitude: 144.9631,
       firstSeen: 1,
       lastSeen: 1_700_000_000_000 - 19_000,
-      iatasHeardIn: ['SYD'],
+      iatasHeardIn: ['MEL'],
       activityCount: 10
     } satisfies PublicNode;
 

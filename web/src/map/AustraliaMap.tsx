@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import type { PublicMessageAnchor, PublicNode, PublicObserverBurst, PublicRoute, PublicRoutePulse } from '../types';
 import { parseSharedView, type MapViewState, type SharedViewState } from '../shareView';
 import { normalizePayloadType, payloadVisual } from '../payloadVisuals';
-import { isMappableEndpoint, isMappableNode } from './geo';
+import { AUSTRALIA_MAP_BOUNDS, isMappableEndpoint, isMappableNode } from './geo';
 import { shouldAnimateLiveEvent } from './animationSafety';
 import {
   CLUSTER_ACTIVITY_GLOW_MS,
@@ -2131,7 +2131,7 @@ function routePulsePoints(pulse: PublicRoutePulse): Array<[number, number]> {
 
 function isFollowPoint(point: [number, number]): boolean {
   const [lng, lat] = point;
-  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52;
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= AUSTRALIA_MAP_BOUNDS.minLat && lat <= AUSTRALIA_MAP_BOUNDS.maxLat && lng >= AUSTRALIA_MAP_BOUNDS.minLng && lng <= AUSTRALIA_MAP_BOUNDS.maxLng;
 }
 
 function followTrafficPadding(map: maplibregl.Map): maplibregl.PaddingOptions {

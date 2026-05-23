@@ -28,32 +28,32 @@ const publicState: PublicLiveState = {
   nodes: [
     {
       id: 'node-a',
-      label: 'Kitchener Repeater',
+      label: 'Sydney Repeater',
       role: 'repeater',
-      latitude: 43.45,
-      longitude: -80.49,
+      latitude: -33.8688,
+      longitude: 151.2093,
       lastSeen: 1_700_000_000_000,
       firstSeen: 1_699_999_000_000,
-      iatasHeardIn: ['YKF'],
+      iatasHeardIn: ['SYD'],
       activityCount: 8
     },
     {
       id: 'node-b',
-      label: 'Sydney Room',
+      label: 'Melbourne Room',
       role: 'room_server',
-      latitude: 43.65,
-      longitude: -79.38,
+      latitude: -37.8136,
+      longitude: 144.9631,
       lastSeen: 1_700_000_000_000,
       firstSeen: 1_699_999_000_000,
-      iatasHeardIn: ['SYD'],
+      iatasHeardIn: ['MEL'],
       activityCount: 6
     }
   ],
   routes: [
     {
       id: 'r-ab',
-      from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-      to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
+      from: { nodeId: 'node-a', label: 'Sydney Repeater', lat: -33.8688, lng: 151.2093 },
+      to: { nodeId: 'node-b', label: 'Melbourne Room', lat: -37.8136, lng: 144.9631 },
       distanceKm: 93,
       packetCount: 7,
       lastHeard: 1_700_000_000_000,
@@ -67,7 +67,7 @@ const publicState: PublicLiveState = {
       kind: 'packet',
       payloadTypeName: 'ADVERT',
       routeTypeName: 'FLOOD',
-      iata: 'YKF',
+      iata: 'MEL',
       heardAt: 1_700_000_000_000,
       hopCount: 1,
       hasRoute: true,
@@ -101,8 +101,8 @@ describe('public app state', () => {
           segments: [
             {
               routeId: 'r-ab',
-              from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-              to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
+              from: { nodeId: 'node-a', label: 'Sydney Repeater', lat: -33.8688, lng: 151.2093 },
+              to: { nodeId: 'node-b', label: 'Melbourne Room', lat: -37.8136, lng: 144.9631 },
               distanceKm: 93
             }
           ]
@@ -132,7 +132,7 @@ describe('public app state', () => {
         hasRoute: false,
         animationState: 'observer',
         resolutionBucket: 'observer_only',
-        observerLocation: { label: 'Sydney observer', iata: 'SYD', lat: 43.65, lng: -79.38 }
+        observerLocation: { label: 'Sydney observer', iata: 'SYD', lat: -37.8136, lng: 144.9631 }
       }
     };
 
@@ -161,8 +161,8 @@ describe('public app state', () => {
         segments: [
           {
             routeId: 'r-ab',
-            from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-            to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
+            from: { nodeId: 'node-a', label: 'Sydney Repeater', lat: -33.8688, lng: 151.2093 },
+            to: { nodeId: 'node-b', label: 'Melbourne Room', lat: -37.8136, lng: 144.9631 },
             distanceKm: 93
           }
         ]
@@ -273,10 +273,10 @@ describe('public app state', () => {
         hasRoute: false,
         animationState: 'observer',
         resolutionBucket: 'observer_only',
-        observerLocation: { label: 'SYD observer', iata: 'SYD', lat: 43.65, lng: -79.38 },
+        observerLocation: { label: 'SYD observer', iata: 'SYD', lat: -37.8136, lng: 144.9631 },
         messageSender: 'Alice',
         messageText: 'observer text',
-        messageAnchor: { kind: 'observer', label: 'SYD observer', lat: 43.65, lng: -79.38 }
+        messageAnchor: { kind: 'observer', label: 'SYD observer', lat: -37.8136, lng: 144.9631 }
       },
       now
     );
@@ -291,7 +291,7 @@ describe('public app state', () => {
     const state = initialAppState(publicState);
 
     expect(filterNodes(state.nodes, 'repeater')).toHaveLength(1);
-    expect(filterNodes(state.nodes, 'SYD')).toHaveLength(1);
+    expect(filterNodes(state.nodes, 'MEL')).toHaveLength(1);
 
     const visibleNodeIDs = new Set(filterNodes(state.nodes, 'room').map((node) => node.id));
     expect(filterRoutes(state.routes, visibleNodeIDs, 'room')).toHaveLength(1);

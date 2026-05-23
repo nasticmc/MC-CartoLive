@@ -89,7 +89,7 @@ describe('packet animation timing', () => {
     expect(observerBurstAllowed(1, MAX_OBSERVER_BURSTS_PER_LOCATION, undefined, 2000)).toBe(false);
     expect(observerBurstAllowed(1, 1, 2000 - OBSERVER_BURST_LOCATION_INTERVAL_MS + 1, 2000)).toBe(false);
     expect(observerBurstAllowed(1, 1, 2000 - OBSERVER_BURST_LOCATION_INTERVAL_MS, 2000)).toBe(true);
-    expect(observerBurstKey({ location: { label: 'Sydney', iata: 'SYD', lat: 43.65322, lng: -79.38318 } })).toBe('Sydney|SYD|43.6532|-79.3832');
+    expect(observerBurstKey({ location: { label: 'Melbourne', iata: 'MEL', lat: -37.8136, lng: 144.9631 } })).toBe('Melbourne|MEL|-37.8136|144.9631');
   });
 
   it('schedules a bound animation frame during construction', () => {
@@ -166,7 +166,7 @@ describe('packet animation timing', () => {
       id: 'observer-1',
       payloadTypeName: 'PLAIN_TEXT',
       heardAt: Date.now(),
-      location: { label: 'SYD observer', iata: 'SYD', lat: -33.86, lng: 151.21 }
+      location: { label: 'MEL observer', iata: 'MEL', lat: -37.81, lng: 144.96 }
     });
 
     expect((animator as any).traceHits).toHaveLength(1);
