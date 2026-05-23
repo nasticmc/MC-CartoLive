@@ -7,9 +7,9 @@ const EASTMESH_AU_URL = 'https://eastmesh.au/';
 export default function LinkBar() {
   return (
     <nav className="link-bar" aria-label="Project links">
-      <a className="link-bar-brand" href={EASTMESH_AU_URL} target="_blank" rel="noreferrer" title="Open EastMesh.au">
+      <a className="link-bar-brand" href={EASTMESH_AU_URL} target="_blank" rel="noreferrer" title="Open EastMesh">
         <img src="/meshcore-australia-favicon.png" alt="" aria-hidden="true" />
-        <span>EastMesh.au</span>
+        <span>EastMesh</span>
       </a>
       <div className="link-bar-build" aria-label={`MC-CartoLive version ${appVersion}, build ${buildNumber}`}>
         <strong>MC-CartoLive</strong>
