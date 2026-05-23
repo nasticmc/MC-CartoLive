@@ -15,8 +15,8 @@ import (
 )
 
 func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T) {
-	lat := 43.45
-	lng := -80.49
+	lat := -33.8688
+	lng := 151.2093
 	invalidLat := 0.0
 	invalidLng := 0.0
 	publicKey := "AA00000000000000000000000000000000000000000000000000000000000000"
@@ -36,7 +36,7 @@ func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T)
 				Longitude:        &lng,
 				LastSeen:         1747665456000,
 				FirstSeen:        1747660000000,
-				IATAsHeardIn:     []string{"YKF"},
+				IATAsHeardIn:     []string{"SYD"},
 				ObservationCount: 3,
 			},
 			{
@@ -51,7 +51,7 @@ func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T)
 		Observers: []live.Observer{
 			{
 				PublicKey: publicKey,
-				IATA:      "YKF",
+				IATA:      "SYD",
 				Name:      publicKey[:8],
 				Latitude:  &lat,
 				Longitude: &lng,
@@ -64,7 +64,7 @@ func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T)
 				PayloadTypeName:   "PLAIN_TEXT",
 				RouteTypeName:     "FLOOD",
 				ObserverPublicKey: publicKey,
-				IATA:              "YKF",
+				IATA:              "SYD",
 				HeardAt:           1747665456000,
 				HopCount:          1,
 				PathHex:           pathHex,
@@ -77,7 +77,7 @@ func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T)
 				PayloadTypeName:   "ADVERT",
 				RouteTypeName:     "FLOOD",
 				ObserverPublicKey: publicKey,
-				IATA:              "YKF",
+				IATA:              "SYD",
 				HeardAt:           1747665457000,
 				HopCount:          0,
 				ResolutionStatus:  resolve.StatusNoPath,
@@ -92,8 +92,8 @@ func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T)
 				RenderReason:    "resolved_path_high_confidence",
 				Segments: []live.EdgeSegment{
 					{
-						From:       live.EdgeEndpoint{NodeID: "node-a", Name: publicKey[:8], Lat: 43.45, Lng: -80.49},
-						To:         live.EdgeEndpoint{NodeID: publicKey, Name: publicKey[:8], Lat: 43.65, Lng: -79.38},
+						From:       live.EdgeEndpoint{NodeID: "node-a", Name: publicKey[:8], Lat: -33.8688, Lng: 151.2093},
+						To:         live.EdgeEndpoint{NodeID: publicKey, Name: publicKey[:8], Lat: -37.8136, Lng: 144.9631},
 						DistanceKM: 94,
 					},
 				},
@@ -184,8 +184,8 @@ func TestPublicRouteAggregationUsesStableIDsCountsAndBuckets(t *testing.T) {
 			HeardAt:         heardAt,
 			Segments: []live.EdgeSegment{
 				{
-					From:       live.EdgeEndpoint{NodeID: "node-a", Name: "A", Lat: 43.45, Lng: -80.49},
-					To:         live.EdgeEndpoint{NodeID: "node-b", Name: "B", Lat: 43.65, Lng: -79.38},
+					From:       live.EdgeEndpoint{NodeID: "node-a", Name: "A", Lat: -33.8688, Lng: 151.2093},
+					To:         live.EdgeEndpoint{NodeID: "node-b", Name: "B", Lat: -37.8136, Lng: 144.9631},
 					DistanceKM: 94,
 				},
 			},
@@ -225,11 +225,11 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 		MessageSender:   "Alice",
 		MessageText:     "hello from route",
 		HeardAt:         1747665456000,
-		MessageAnchor:   &live.MessageAnchor{Kind: "source", Endpoint: live.EdgeEndpoint{NodeID: "node-a", Name: "Sender", Lat: 43.45, Lng: -80.49}},
+		MessageAnchor:   &live.MessageAnchor{Kind: "source", Endpoint: live.EdgeEndpoint{NodeID: "node-a", Name: "Sender", Lat: -33.8688, Lng: 151.2093}},
 		Segments: []live.EdgeSegment{
 			{
-				From:       live.EdgeEndpoint{NodeID: "node-a", Name: "Sender", Lat: 43.45, Lng: -80.49},
-				To:         live.EdgeEndpoint{NodeID: "node-b", Name: "Receiver", Lat: 43.65, Lng: -79.38},
+				From:       live.EdgeEndpoint{NodeID: "node-a", Name: "Sender", Lat: -33.8688, Lng: 151.2093},
+				To:         live.EdgeEndpoint{NodeID: "node-b", Name: "Receiver", Lat: -37.8136, Lng: 144.9631},
 				DistanceKM: 94,
 			},
 		},
@@ -241,7 +241,7 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 	if pulse.MessageAnchor == nil || pulse.MessageAnchor.Kind != "source" || pulse.MessageAnchor.Label != "Sender" {
 		t.Fatalf("route message anchor = %#v, want sender/source", pulse.MessageAnchor)
 	}
-	edge.MessageAnchor = &live.MessageAnchor{Kind: "observer", Endpoint: live.EdgeEndpoint{NodeID: "observer-key", Name: "SYD observer", Lat: 43.65, Lng: -79.38}}
+	edge.MessageAnchor = &live.MessageAnchor{Kind: "observer", Endpoint: live.EdgeEndpoint{NodeID: "observer-key", Name: "SYD observer", Lat: -37.8136, Lng: 144.9631}}
 	pulse, ok = live.PublicRoutePulseFromEdge(edge)
 	if !ok {
 		t.Fatalf("route pulse with observer anchor not built")
@@ -250,7 +250,7 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 		t.Fatalf("route observer fallback anchor = %#v, want observer without node id", pulse.MessageAnchor)
 	}
 
-	observerLocation := &live.PublicObserverLocation{Label: "SYD observer", IATA: "SYD", Lat: 43.65, Lng: -79.38}
+	observerLocation := &live.PublicObserverLocation{Label: "SYD observer", IATA: "SYD", Lat: -37.8136, Lng: 144.9631}
 	activity := live.PublicActivityFromPacket(live.PacketObservation{
 		ID:               88,
 		IATA:             "SYD",
@@ -275,8 +275,8 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 }
 
 func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
-	lat := 43.65
-	lng := -79.38
+	lat := -37.8136
+	lng := 144.9631
 	filter := live.NewPublicIATAFilter([]string{"SYD"})
 	if live.NewPublicIATAFilter([]string{"Y*"}).Allows("SYD") {
 		t.Fatalf("wildcard IATA entries must not allow public traffic")
@@ -288,7 +288,7 @@ func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
 		ServerTime: 1747665456000,
 		Nodes: []live.Node{
 			{
-				NodeID:       "node-yyz",
+				NodeID:       "node-syd",
 				PublicKey:    "AA00000000000000000000000000000000000000000000000000000000000000",
 				Name:         "Sydney",
 				Role:         "repeater",
@@ -306,7 +306,7 @@ func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
 			{ID: 2, IATA: "PRG", PayloadTypeName: "ADVERT", ResolutionStatus: resolve.StatusNoPath, ObserverPublicKey: "observer-prg"},
 		},
 		RecentEdgeEvents: []live.EdgeEvent{
-			{ID: 1, IATA: "SYD", PacketHash: "hash-y", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-yyz", Name: "Sydney", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-2", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
+			{ID: 1, IATA: "SYD", PacketHash: "hash-y", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-syd", Name: "Sydney", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-2", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
 			{ID: 2, IATA: "PRG", PacketHash: "hash-prg", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-prg", Name: "Prague", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-3", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
 		},
 	}

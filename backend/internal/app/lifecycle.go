@@ -550,10 +550,10 @@ func validMapCoords(lat float64, lng float64) bool {
 		!math.IsInf(lng, 0) &&
 		lat != 0 &&
 		lng != 0 &&
-		lat >= 41 &&
-		lat <= 84 &&
-		lng >= -142 &&
-		lng <= -52
+		lat >= -44.5 &&
+		lat <= -9 &&
+		lng >= 112 &&
+		lng <= 154
 }
 
 func nodeEndpoint(n live.Node) live.EdgeEndpoint {
