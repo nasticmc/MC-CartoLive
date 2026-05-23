@@ -156,12 +156,12 @@ const mapStyle: maplibregl.StyleSpecification = {
   version: 8,
   glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
   sources: {
-    cartoDark: {
+    cartoLight: {
       type: 'raster',
       tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
       ],
       tileSize: 256,
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
@@ -186,12 +186,12 @@ const mapStyle: maplibregl.StyleSpecification = {
     {
       id: 'map-background',
       type: 'background',
-      paint: { 'background-color': '#05070b' }
+      paint: { 'background-color': '#e5e7eb' }
     },
     {
-      id: 'carto-dark',
+      id: 'carto-light',
       type: 'raster',
-      source: 'cartoDark',
+      source: 'cartoLight',
       minzoom: 0,
       maxzoom: 20
     },
@@ -918,24 +918,24 @@ export default function AustraliaMap({
 }
 
 function addBaseMapLayer(map: maplibregl.Map) {
-  if (!map.getSource('cartoDark')) {
-    map.addSource('cartoDark', {
+  if (!map.getSource('cartoLight')) {
+    map.addSource('cartoLight', {
       type: 'raster',
       tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
       ],
       tileSize: 256,
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     });
   }
-  if (!map.getLayer('carto-dark')) {
+  if (!map.getLayer('carto-light')) {
     map.addLayer(
       {
-        id: 'carto-dark',
+        id: 'carto-light',
         type: 'raster',
-        source: 'cartoDark',
+        source: 'cartoLight',
         minzoom: 0,
         maxzoom: 20
       },
@@ -1221,7 +1221,7 @@ function addLayerIfMissing(map: maplibregl.Map, layer: maplibregl.LayerSpecifica
 
 function mapStyleSourcesReady(map: maplibregl.Map): boolean {
   try {
-    return Boolean(map.getLayer('carto-dark') && map.getSource(NODE_SOURCE) && map.getSource(ROUTE_SOURCE) && map.getSource(CLUSTER_ACTIVITY_SOURCE));
+    return Boolean(map.getLayer('carto-light') && map.getSource(NODE_SOURCE) && map.getSource(ROUTE_SOURCE) && map.getSource(CLUSTER_ACTIVITY_SOURCE));
   } catch {
     return false;
   }

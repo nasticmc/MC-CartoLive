@@ -1,5 +1,5 @@
 export const NODE_CLUSTER_MAX_ZOOM = 7;
-export const DETAIL_MIN_ZOOM = NODE_CLUSTER_MAX_ZOOM + 0.08;
+export const DETAIL_MIN_ZOOM = NODE_CLUSTER_MAX_ZOOM;
 
 export type MapVisualMode = 'cluster' | 'detail';
 
