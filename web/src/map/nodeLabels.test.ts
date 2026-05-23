@@ -28,7 +28,7 @@ describe('map node labels', () => {
       longitude: -79.38,
       firstSeen: 1,
       lastSeen: 1_700_000_000_000 - 19_000,
-      iatasHeardIn: ['YYZ'],
+      iatasHeardIn: ['SYD'],
       activityCount: 10
     } satisfies PublicNode;
 

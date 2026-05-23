@@ -35,7 +35,7 @@ The public map filters state and live events through `PUBLIC_IATAS`. Unsupported
 or unexpected IATA traffic is counted as an anomaly and excluded from the public
 map.
 
-Keep the allowlist to supported Canada IATA region codes unless there is an
+Keep the allowlist to supported Australia IATA region codes unless there is an
 explicit product decision to publish another region.
 
 ## Route Truth

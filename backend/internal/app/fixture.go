@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	imqtt "meshcore-canada-live-map/backend/internal/mqtt"
+	imqtt "meshcore-australia-live-map/backend/internal/mqtt"
 )
 
 type fixtureLine struct {

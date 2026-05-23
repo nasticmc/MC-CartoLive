@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve the MeshCore Canada live map.
+Thanks for helping improve the MeshCore Australia live map.
 
 ## Development Setup
 

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"meshcore-canada-live-map/backend/internal/meshcore"
-	imqtt "meshcore-canada-live-map/backend/internal/mqtt"
+	"meshcore-australia-live-map/backend/internal/meshcore"
+	imqtt "meshcore-australia-live-map/backend/internal/mqtt"
 )
 
 func TestSyntheticFixtureNormalizesAndParsesPackets(t *testing.T) {

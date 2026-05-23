@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"meshcore-canada-live-map/backend/internal/api"
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/resolve"
+	"meshcore-australia-live-map/backend/internal/api"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/resolve"
 )
 
 func TestPublicLiveStateStripsSensitiveFieldsAndInvalidCoordinates(t *testing.T) {
@@ -220,7 +220,7 @@ func TestPublicRouteAggregationUsesStableIDsCountsAndBuckets(t *testing.T) {
 func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 	edge := live.EdgeEvent{
 		ID:              77,
-		IATA:            "YYZ",
+		IATA:            "SYD",
 		PayloadTypeName: "PLAIN_TEXT",
 		MessageSender:   "Alice",
 		MessageText:     "hello from route",
@@ -241,31 +241,31 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 	if pulse.MessageAnchor == nil || pulse.MessageAnchor.Kind != "source" || pulse.MessageAnchor.Label != "Sender" {
 		t.Fatalf("route message anchor = %#v, want sender/source", pulse.MessageAnchor)
 	}
-	edge.MessageAnchor = &live.MessageAnchor{Kind: "observer", Endpoint: live.EdgeEndpoint{NodeID: "observer-key", Name: "YYZ observer", Lat: 43.65, Lng: -79.38}}
+	edge.MessageAnchor = &live.MessageAnchor{Kind: "observer", Endpoint: live.EdgeEndpoint{NodeID: "observer-key", Name: "SYD observer", Lat: 43.65, Lng: -79.38}}
 	pulse, ok = live.PublicRoutePulseFromEdge(edge)
 	if !ok {
 		t.Fatalf("route pulse with observer anchor not built")
 	}
-	if pulse.MessageAnchor == nil || pulse.MessageAnchor.Kind != "observer" || pulse.MessageAnchor.Label != "YYZ observer" || pulse.MessageAnchor.NodeID != "" {
+	if pulse.MessageAnchor == nil || pulse.MessageAnchor.Kind != "observer" || pulse.MessageAnchor.Label != "SYD observer" || pulse.MessageAnchor.NodeID != "" {
 		t.Fatalf("route observer fallback anchor = %#v, want observer without node id", pulse.MessageAnchor)
 	}
 
-	observerLocation := &live.PublicObserverLocation{Label: "YYZ observer", IATA: "YYZ", Lat: 43.65, Lng: -79.38}
+	observerLocation := &live.PublicObserverLocation{Label: "SYD observer", IATA: "SYD", Lat: 43.65, Lng: -79.38}
 	activity := live.PublicActivityFromPacket(live.PacketObservation{
 		ID:               88,
-		IATA:             "YYZ",
+		IATA:             "SYD",
 		PayloadTypeName:  "PLAIN_TEXT",
 		MessageSender:    "Alice",
 		MessageText:      "hello from observer",
 		ResolutionStatus: resolve.StatusNoPath,
 		HeardAt:          1747665457000,
 	}, nil, observerLocation)
-	if activity.MessageAnchor == nil || activity.MessageAnchor.Kind != "observer" || activity.MessageAnchor.Label != "YYZ observer" {
+	if activity.MessageAnchor == nil || activity.MessageAnchor.Kind != "observer" || activity.MessageAnchor.Label != "SYD observer" {
 		t.Fatalf("observer fallback message anchor = %#v, want observer", activity.MessageAnchor)
 	}
 	if live.PublicActivityFromPacket(live.PacketObservation{
 		ID:               89,
-		IATA:             "YYZ",
+		IATA:             "SYD",
 		PayloadTypeName:  "PLAIN_TEXT",
 		MessageText:      "no anchor",
 		ResolutionStatus: resolve.StatusMissingCoords,
@@ -277,8 +277,8 @@ func TestPublicMessageAnchorsChooseSourceThenObserverFallback(t *testing.T) {
 func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
 	lat := 43.65
 	lng := -79.38
-	filter := live.NewPublicIATAFilter([]string{"YYZ"})
-	if live.NewPublicIATAFilter([]string{"Y*"}).Allows("YYZ") {
+	filter := live.NewPublicIATAFilter([]string{"SYD"})
+	if live.NewPublicIATAFilter([]string{"Y*"}).Allows("SYD") {
 		t.Fatalf("wildcard IATA entries must not allow public traffic")
 	}
 	if filter.Allows("") {
@@ -290,23 +290,23 @@ func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
 			{
 				NodeID:       "node-yyz",
 				PublicKey:    "AA00000000000000000000000000000000000000000000000000000000000000",
-				Name:         "Toronto",
+				Name:         "Sydney",
 				Role:         "repeater",
 				Latitude:     &lat,
 				Longitude:    &lng,
-				IATAsHeardIn: []string{"YYZ", "PRG"},
+				IATAsHeardIn: []string{"SYD", "PRG"},
 			},
 		},
 		Observers: []live.Observer{
-			{PublicKey: "observer-y", IATA: "YYZ", Latitude: &lat, Longitude: &lng},
+			{PublicKey: "observer-y", IATA: "SYD", Latitude: &lat, Longitude: &lng},
 			{PublicKey: "observer-prg", IATA: "PRG", Latitude: &lat, Longitude: &lng},
 		},
 		RecentPackets: []live.PacketObservation{
-			{ID: 1, IATA: "YYZ", PayloadTypeName: "ADVERT", ResolutionStatus: resolve.StatusNoPath, ObserverPublicKey: "observer-y"},
+			{ID: 1, IATA: "SYD", PayloadTypeName: "ADVERT", ResolutionStatus: resolve.StatusNoPath, ObserverPublicKey: "observer-y"},
 			{ID: 2, IATA: "PRG", PayloadTypeName: "ADVERT", ResolutionStatus: resolve.StatusNoPath, ObserverPublicKey: "observer-prg"},
 		},
 		RecentEdgeEvents: []live.EdgeEvent{
-			{ID: 1, IATA: "YYZ", PacketHash: "hash-y", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-yyz", Name: "Toronto", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-2", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
+			{ID: 1, IATA: "SYD", PacketHash: "hash-y", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-yyz", Name: "Sydney", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-2", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
 			{ID: 2, IATA: "PRG", PacketHash: "hash-prg", PayloadTypeName: "ADVERT", HeardAt: 1747665456000, Segments: []live.EdgeSegment{{From: live.EdgeEndpoint{NodeID: "node-prg", Name: "Prague", Lat: lat, Lng: lng}, To: live.EdgeEndpoint{NodeID: "node-3", Name: "Node", Lat: lat + 0.1, Lng: lng - 0.1}, DistanceKM: 12}}},
 		},
 	}
@@ -319,17 +319,17 @@ func TestPublicIATAAllowlistFiltersStateAndReportsAnomalies(t *testing.T) {
 	if !ok {
 		t.Fatalf("cache snapshot not ready")
 	}
-	if len(snapshot.RecentActivity) != 1 || snapshot.RecentActivity[0].IATA != "YYZ" {
-		t.Fatalf("public activity = %#v, want only YYZ", snapshot.RecentActivity)
+	if len(snapshot.RecentActivity) != 1 || snapshot.RecentActivity[0].IATA != "SYD" {
+		t.Fatalf("public activity = %#v, want only SYD", snapshot.RecentActivity)
 	}
-	if len(snapshot.RecentPulses) != 1 || snapshot.RecentPulses[0].IATA != "YYZ" {
-		t.Fatalf("public pulses = %#v, want only YYZ", snapshot.RecentPulses)
+	if len(snapshot.RecentPulses) != 1 || snapshot.RecentPulses[0].IATA != "SYD" {
+		t.Fatalf("public pulses = %#v, want only SYD", snapshot.RecentPulses)
 	}
 	if got := snapshot.Stats.ExcludedIATAs["PRG"]; got == 0 {
 		t.Fatalf("excluded PRG anomaly counter = %d, want > 0", got)
 	}
-	if got := snapshot.Nodes[0].IATAsHeardIn; len(got) != 1 || got[0] != "YYZ" {
-		t.Fatalf("filtered node IATAs = %#v, want YYZ only", got)
+	if got := snapshot.Nodes[0].IATAsHeardIn; len(got) != 1 || got[0] != "SYD" {
+		t.Fatalf("filtered node IATAs = %#v, want SYD only", got)
 	}
 }
 

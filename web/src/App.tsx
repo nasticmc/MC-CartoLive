@@ -12,7 +12,7 @@ import {
   summarizeRouteActivity,
   type AppState
 } from './state';
-import CanadaMap, { type MapAction } from './map/CanadaMap';
+import AustraliaMap, { type MapAction } from './map/AustraliaMap';
 import HotRoutes from './components/HotRoutes';
 import Legend from './components/Legend';
 import LinkBar from './components/LinkBar';
@@ -252,7 +252,7 @@ export default function App() {
 
   return (
     <div className="app-shell public-dashboard">
-      <CanadaMap
+      <AustraliaMap
         nodes={visibleNodes}
         routes={visibleRoutes}
         pulses={state.pulses}

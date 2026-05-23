@@ -2,7 +2,7 @@
 
 ## 1.1.0
 
-- Added the MC-CartoLive project bar with MeshCore Canada, GitHub, version, and build links.
+- Added the MC-CartoLive project bar with MeshCore Australia, GitHub, version, and build links.
 - Added a compact red Live Follow control that smoothly follows fresh packet movement.
 - Stabilized the status bar so changing counters do not shift the toolbar.
 - Improved mobile layout by hiding secondary panels and toasts, moving controls to the bottom, and keeping the map and packet motion as the focus.

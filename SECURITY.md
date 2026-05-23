@@ -2,7 +2,7 @@
 
 ## Supported Use
 
-This project is intended to run as a public, read-only MeshCore Canada live map.
+This project is intended to run as a public, read-only MeshCore Australia live map.
 The public deployment should use `PUBLIC_MODE=true`, which exposes only:
 
 - `/healthz`

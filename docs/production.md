@@ -16,7 +16,7 @@ credentials, private keys, or local operator config.
 
 ```bash
 git clone <your-repo-url>
-cd meshcore-canada-live-map
+cd meshcore-australia-live-map
 cp .env.example .env
 ```
 
@@ -100,7 +100,7 @@ docker compose up -d
 - Version 1.1 exposes the app version/build in the top project bar. CI builds use
   the Git commit SHA when available; local Docker builds use a timestamp fallback.
 - `PUBLIC_BASE_URL` must match the public browser origin so WebSocket origin checks pass.
-- `PUBLIC_IATAS` should stay restricted to supported Canada IATA region codes.
+- `PUBLIC_IATAS` should stay restricted to supported Australia IATA region codes.
 - Keep `PUBLIC_MODE=true` on public hosts.
 - The compose file mounts `./data` read/write and `./examples` read-only.
 - Container logs are rotated by Docker Compose to avoid unbounded local log growth.

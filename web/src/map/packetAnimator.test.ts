@@ -89,7 +89,7 @@ describe('packet animation timing', () => {
     expect(observerBurstAllowed(1, MAX_OBSERVER_BURSTS_PER_LOCATION, undefined, 2000)).toBe(false);
     expect(observerBurstAllowed(1, 1, 2000 - OBSERVER_BURST_LOCATION_INTERVAL_MS + 1, 2000)).toBe(false);
     expect(observerBurstAllowed(1, 1, 2000 - OBSERVER_BURST_LOCATION_INTERVAL_MS, 2000)).toBe(true);
-    expect(observerBurstKey({ location: { label: 'Toronto', iata: 'YYZ', lat: 43.65322, lng: -79.38318 } })).toBe('Toronto|YYZ|43.6532|-79.3832');
+    expect(observerBurstKey({ location: { label: 'Sydney', iata: 'SYD', lat: 43.65322, lng: -79.38318 } })).toBe('Sydney|SYD|43.6532|-79.3832');
   });
 
   it('schedules a bound animation frame during construction', () => {

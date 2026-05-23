@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"meshcore-canada-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/live"
 )
 
 type Stats struct {

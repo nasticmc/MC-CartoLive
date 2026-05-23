@@ -12,11 +12,11 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/meshcore"
-	imqtt "meshcore-canada-live-map/backend/internal/mqtt"
-	"meshcore-canada-live-map/backend/internal/resolve"
-	"meshcore-canada-live-map/backend/internal/store"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/meshcore"
+	imqtt "meshcore-australia-live-map/backend/internal/mqtt"
+	"meshcore-australia-live-map/backend/internal/resolve"
+	"meshcore-australia-live-map/backend/internal/store"
 )
 
 type Application struct {
