@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/meshcore"
-	mq "meshcore-canada-live-map/backend/internal/mqtt"
-	"meshcore-canada-live-map/backend/internal/resolve"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/meshcore"
+	mq "meshcore-australia-live-map/backend/internal/mqtt"
+	"meshcore-australia-live-map/backend/internal/resolve"
 )
 
 const mappableCoordinatesSQL = `latitude IS NOT NULL AND longitude IS NOT NULL AND latitude != 0 AND longitude != 0 AND latitude BETWEEN 41 AND 84 AND longitude BETWEEN -142 AND -52`

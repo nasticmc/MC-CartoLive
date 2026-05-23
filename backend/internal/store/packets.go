@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/meshcore"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/meshcore"
 )
 
 func (s *Store) UpsertPacket(ctx context.Context, parsed meshcore.ParsedPacket, seenAt int64) error {

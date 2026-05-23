@@ -1,7 +1,7 @@
 services:
   meshcore-live-map:
     build: .
-    container_name: meshcore-canada-live-map
+    container_name: meshcore-australia-live-map
     ports:
       - "39476:8080"
     env_file:

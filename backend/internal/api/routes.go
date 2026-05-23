@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/store"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/store"
 )
 
 type Config struct {

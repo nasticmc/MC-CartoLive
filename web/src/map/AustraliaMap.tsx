@@ -413,7 +413,7 @@ const mapStyle: maplibregl.StyleSpecification = {
   ]
 };
 
-export default function CanadaMap({
+export default function AustraliaMap({
   nodes,
   routes,
   pulses,

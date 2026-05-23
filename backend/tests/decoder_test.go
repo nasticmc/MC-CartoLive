@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"meshcore-canada-live-map/backend/internal/meshcore"
-	"meshcore-canada-live-map/backend/internal/resolve"
-	"meshcore-canada-live-map/backend/internal/store"
+	"meshcore-australia-live-map/backend/internal/meshcore"
+	"meshcore-australia-live-map/backend/internal/resolve"
+	"meshcore-australia-live-map/backend/internal/store"
 )
 
 func TestPacketPathLengthHashSizeParsing(t *testing.T) {

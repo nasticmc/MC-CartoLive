@@ -1,4 +1,4 @@
-module meshcore-canada-live-map/backend
+module meshcore-australia-live-map/backend
 
 go 1.25.0
 

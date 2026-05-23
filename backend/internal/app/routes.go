@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"meshcore-canada-live-map/backend/internal/api"
+	"meshcore-australia-live-map/backend/internal/api"
 )
 
 func (a *Application) Routes() http.Handler {

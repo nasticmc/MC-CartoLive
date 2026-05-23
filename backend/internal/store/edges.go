@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"meshcore-canada-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/live"
 )
 
 func (s *Store) InsertEdgeEvent(ctx context.Context, event live.EdgeEvent) (live.EdgeEvent, error) {

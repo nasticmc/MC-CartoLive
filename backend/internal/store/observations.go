@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"meshcore-canada-live-map/backend/internal/live"
-	"meshcore-canada-live-map/backend/internal/meshcore"
-	mq "meshcore-canada-live-map/backend/internal/mqtt"
+	"meshcore-australia-live-map/backend/internal/live"
+	"meshcore-australia-live-map/backend/internal/meshcore"
+	mq "meshcore-australia-live-map/backend/internal/mqtt"
 )
 
 type ObservationInsert struct {

@@ -12,17 +12,17 @@ The app stays intentionally simple for operators: one Go backend, one embedded
 React frontend, one SQLite database, one Docker Compose service.
 
 Public Instances: 
-Meshcore Canada MQTT - https://routes.canadaverse.org/
+Meshcore Australia MQTT - https://routes.australiaverse.org/
 
 ## Screenshots
 
 Real public map data from the local production container:
 
-![Canada cluster overview](docs/assets/screenshots/canada-clusters.png)
+![Australia cluster overview](docs/assets/screenshots/australia-clusters.png)
 
-![Toronto live route detail](docs/assets/screenshots/toronto-detail.png)
+![Sydney live route detail](docs/assets/screenshots/sydney-detail.png)
 
-![Ottawa live route detail](docs/assets/screenshots/ottawa-detail.png)
+![Melbourne live route detail](docs/assets/screenshots/melbourne-detail.png)
 
 ## What It Does
 
@@ -31,11 +31,11 @@ Real public map data from the local production container:
 - Resolves RF paths conservatively, without drawing guessed routes.
 - Shows low-zoom cluster activity and high-zoom route/node detail.
 - Animates live packet comets, observer bursts, route payload glows, and message bubbles.
-- Includes a compact project bar with MeshCore Canada, GitHub, version, and build links.
+- Includes a compact project bar with MeshCore Australia, GitHub, version, and build links.
 - Provides a red Live Follow control for smoothly following areas with fresh packet movement.
 - Prioritizes the map on mobile by moving controls to the bottom and hiding secondary panels/toasts.
 - Serves public state from a backend memory cache instead of rebuilding every request from SQLite.
-- Filters public traffic through the Canada IATA allowlist.
+- Filters public traffic through the Australia IATA allowlist.
 - Keeps private broker credentials, channel secrets, live DB files, packet hashes, public keys, path hex, and resolver debug details out of public responses.
 
 ## Architecture
@@ -86,10 +86,10 @@ Important settings:
 | `PUBLIC_MODE` | yes | Use `true` for public hosting. |
 | `PUBLIC_BASE_URL` | yes | Browser origin allowed for public WebSocket connections. Use your HTTPS site URL in production. |
 | `MQTT_ENABLED` | yes | The public example uses `false`; set `true` only with private credentials. |
-| `MQTT_BROKER_URL` | yes when MQTT is enabled | Defaults to the MeshCore Canada MQTT broker URL. |
+| `MQTT_BROKER_URL` | yes when MQTT is enabled | Defaults to the MeshCore Australia MQTT broker URL. |
 | `MQTT_USERNAME` / `MQTT_PASSWORD` | yes when `MESHCORE_AUTH_MODE=subscriber` and MQTT is enabled | Keep private. |
 | `MESHCORE_CHANNEL_SECRETS` | optional | Keep private. Used only to decode sanitized public message bubble text. |
-| `PUBLIC_IATAS` | yes | Canada IATA allowlist for public map state/events. |
+| `PUBLIC_IATAS` | yes | Australia IATA allowlist for public map state/events. |
 | `DB_PATH` | yes | SQLite database path inside the container. |
 | `CONFIG_YAML` | optional | Private local node/observer coordinate overrides. |
 | `FIXTURE_REPLAY_PATH` | optional | Synthetic replay file for demos without MQTT credentials. |
@@ -166,5 +166,5 @@ MIT. See [LICENSE](LICENSE).
 
 - MeshCore packet format: https://github.com/meshcore-dev/MeshCore/blob/main/docs/packet_format.md
 - MeshCore payload format: https://github.com/meshcore-dev/MeshCore/blob/main/docs/payloads.md
-- MeshCore Canada MQTT guides: https://meshcore.ca/analyzer/builds/mctomqtt/
+- MeshCore Australia MQTT guides: https://meshcore.au/analyzer/builds/mctomqtt/
 - MeshCore MQTT broker subscriber role notes: https://github.com/michaelhart/meshcore-mqtt-broker

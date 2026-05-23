@@ -39,13 +39,13 @@ const publicState: PublicLiveState = {
     },
     {
       id: 'node-b',
-      label: 'Toronto Room',
+      label: 'Sydney Room',
       role: 'room_server',
       latitude: 43.65,
       longitude: -79.38,
       lastSeen: 1_700_000_000_000,
       firstSeen: 1_699_999_000_000,
-      iatasHeardIn: ['YYZ'],
+      iatasHeardIn: ['SYD'],
       activityCount: 6
     }
   ],
@@ -53,7 +53,7 @@ const publicState: PublicLiveState = {
     {
       id: 'r-ab',
       from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-      to: { nodeId: 'node-b', label: 'Toronto Room', lat: 43.65, lng: -79.38 },
+      to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
       distanceKm: 93,
       packetCount: 7,
       lastHeard: 1_700_000_000_000,
@@ -102,7 +102,7 @@ describe('public app state', () => {
             {
               routeId: 'r-ab',
               from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-              to: { nodeId: 'node-b', label: 'Toronto Room', lat: 43.65, lng: -79.38 },
+              to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
               distanceKm: 93
             }
           ]
@@ -126,13 +126,13 @@ describe('public app state', () => {
         kind: 'packet',
         payloadTypeName: 'PLAIN_TEXT',
         routeTypeName: 'FLOOD',
-        iata: 'YYZ',
+        iata: 'SYD',
         heardAt: 1_700_000_010_000,
         hopCount: 0,
         hasRoute: false,
         animationState: 'observer',
         resolutionBucket: 'observer_only',
-        observerLocation: { label: 'Toronto observer', iata: 'YYZ', lat: 43.65, lng: -79.38 }
+        observerLocation: { label: 'Sydney observer', iata: 'SYD', lat: 43.65, lng: -79.38 }
       }
     };
 
@@ -162,7 +162,7 @@ describe('public app state', () => {
           {
             routeId: 'r-ab',
             from: { nodeId: 'node-a', label: 'Kitchener Repeater', lat: 43.45, lng: -80.49 },
-            to: { nodeId: 'node-b', label: 'Toronto Room', lat: 43.65, lng: -79.38 },
+            to: { nodeId: 'node-b', label: 'Sydney Room', lat: 43.65, lng: -79.38 },
             distanceKm: 93
           }
         ]
@@ -273,10 +273,10 @@ describe('public app state', () => {
         hasRoute: false,
         animationState: 'observer',
         resolutionBucket: 'observer_only',
-        observerLocation: { label: 'YYZ observer', iata: 'YYZ', lat: 43.65, lng: -79.38 },
+        observerLocation: { label: 'SYD observer', iata: 'SYD', lat: 43.65, lng: -79.38 },
         messageSender: 'Alice',
         messageText: 'observer text',
-        messageAnchor: { kind: 'observer', label: 'YYZ observer', lat: 43.65, lng: -79.38 }
+        messageAnchor: { kind: 'observer', label: 'SYD observer', lat: 43.65, lng: -79.38 }
       },
       now
     );
@@ -291,7 +291,7 @@ describe('public app state', () => {
     const state = initialAppState(publicState);
 
     expect(filterNodes(state.nodes, 'repeater')).toHaveLength(1);
-    expect(filterNodes(state.nodes, 'YYZ')).toHaveLength(1);
+    expect(filterNodes(state.nodes, 'SYD')).toHaveLength(1);
 
     const visibleNodeIDs = new Set(filterNodes(state.nodes, 'room').map((node) => node.id));
     expect(filterRoutes(state.routes, visibleNodeIDs, 'room')).toHaveLength(1);

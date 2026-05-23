@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"meshcore-canada-live-map/backend/internal/resolve"
+	"meshcore-australia-live-map/backend/internal/resolve"
 )
 
 type PublicNode struct {

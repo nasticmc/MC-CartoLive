@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"meshcore-canada-live-map/backend/internal/app"
+	"meshcore-australia-live-map/backend/internal/app"
 )
 
 func main() {

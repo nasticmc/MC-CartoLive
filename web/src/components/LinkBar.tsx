@@ -8,7 +8,7 @@ export default function LinkBar() {
   return (
     <nav className="link-bar" aria-label="Project links">
       <a className="link-bar-brand" href={EASTMESH_AU_URL} target="_blank" rel="noreferrer" title="Open EastMesh.au">
-        <img src="/meshcore-canada-favicon.png" alt="" aria-hidden="true" />
+        <img src="/meshcore-australia-favicon.png" alt="" aria-hidden="true" />
         <span>EastMesh.au</span>
       </a>
       <div className="link-bar-build" aria-label={`MC-CartoLive version ${appVersion}, build ${buildNumber}`}>

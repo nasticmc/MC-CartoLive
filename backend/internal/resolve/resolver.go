@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"meshcore-canada-live-map/backend/internal/meshcore"
+	"meshcore-australia-live-map/backend/internal/meshcore"
 )
 
 type CandidateProvider interface {

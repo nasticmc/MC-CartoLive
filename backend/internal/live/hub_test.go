@@ -6,7 +6,7 @@ import (
 )
 
 func TestWebsocketOriginAllowed(t *testing.T) {
-	allowedHosts := allowedOriginHosts([]string{"http://routes.canadaverse.org"})
+	allowedHosts := allowedOriginHosts([]string{"http://routes.australiaverse.org"})
 
 	tests := []struct {
 		name   string
@@ -14,8 +14,8 @@ func TestWebsocketOriginAllowed(t *testing.T) {
 		origin string
 		want   bool
 	}{
-		{name: "same public host", host: "routes.canadaverse.org", origin: "http://routes.canadaverse.org", want: true},
-		{name: "configured public origin through localhost proxy", host: "localhost:39476", origin: "http://routes.canadaverse.org", want: true},
+		{name: "same public host", host: "routes.australiaverse.org", origin: "http://routes.australiaverse.org", want: true},
+		{name: "configured public origin through localhost proxy", host: "localhost:39476", origin: "http://routes.australiaverse.org", want: true},
 		{name: "same local host", host: "localhost:39476", origin: "http://localhost:39476", want: true},
 		{name: "local hostnames may differ", host: "127.0.0.1:39476", origin: "http://localhost:39476", want: true},
 		{name: "missing origin", host: "localhost:39476", origin: "", want: true},
